@@ -14,7 +14,7 @@ def get_fuel_for_module(mass: float, recursive: bool = False) -> float:
     return fuel
 
 
-def get_fuel_for_modules(masses: Sequence[int], recursive: bool = False) -> int:
+def get_fuel_for_modules(masses: Sequence[int], recursive: bool = False) -> float:
     return sum([
         get_fuel_for_module(module_mass, recursive=recursive)
         for module_mass in masses

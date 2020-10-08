@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-from typing import Sequence, Tuple
+from typing import List, Tuple
 import unittest
 
 NOUN = 1
 VERB = 2
 
-Data = Sequence[int]
+Data = List[int]
 
 
 def run(data: Data) -> int:
