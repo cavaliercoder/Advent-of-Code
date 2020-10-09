@@ -3,11 +3,7 @@
 from typing import List
 import unittest
 
-from intcode import Data, IntcodeVM
-
-
-def decode(s: str) -> Data:
-    return [int(opcode) for opcode in s.split(",")]
+from intcode import decode, Data, IntcodeVM
 
 
 def load_vm(stdin: Data) -> Data:

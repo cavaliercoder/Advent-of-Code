@@ -20,6 +20,10 @@ OPCODE_HALT = 99
 Data = List[int]
 
 
+def decode(s: str) -> Data:
+    return [int(opcode) for opcode in s.split(",")]
+
+
 class Instruction:
     def __init__(self, v: int) -> None:
         self.opcode: int = v % 100
@@ -37,11 +41,7 @@ class Instruction:
 
 
 class IntcodeVM:
-    def __init__(self, data: Data, stdin: Optional[Data] = None) -> None:
-        self.ptr = 0
-        self.data = data.copy()
-        self.stdin: Data = stdin or []
-        self.stdout: Data = []
+    def __init__(self, data: Optional[Data] = None, stdin: Optional[Data] = None) -> None:
         self.handlers = {
             OPCODE_ADD: self.op_add,
             OPCODE_MULTIPLY: self.op_multiply,
@@ -52,6 +52,18 @@ class IntcodeVM:
             OPCODE_LT: self.op_lt,
             OPCODE_EQ: self.op_eq,
         }
+        self.reset(data, stdin)
+    
+    @property
+    def halted(self) -> bool:
+        fn = Instruction(self.data[self.ptr])
+        return fn.opcode == OPCODE_HALT
+
+    def reset(self, data: Optional[Data], stdin: Optional[Data] = None) -> None:
+        self.ptr = 0
+        self.data = data.copy() if data else []
+        self.stdin: Data = stdin.copy() if stdin else []
+        self.stdout: Data = []
 
     def step(self) -> bool:
         fn = Instruction(self.data[self.ptr])
@@ -67,6 +79,14 @@ class IntcodeVM:
         do_step = True
         while do_step:
             do_step = self.step()
+
+    def io_push(self, v: int) -> None:
+        self.stdin.append(v)
+    
+    def io_pop(self) -> int:
+        v = self.stdout[0]
+        self.stdout = self.stdout[1:]
+        return v
 
     def read(self, addr: int, mode=ADDR_MODE_IMM) -> int:
         v = self.data[addr]
