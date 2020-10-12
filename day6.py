@@ -95,7 +95,3 @@ I)SAN
 
         result = count_transfers(get_graph(parse_orbits(s)))
         self.assertEqual(result, 4)
-
-
-if __name__ == "__main__":
-    unittest.main()

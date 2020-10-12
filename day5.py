@@ -23,7 +23,3 @@ class TestIntcodeVM(unittest.TestCase):
     def test_part2(self):
         stdout = load_vm([5])
         self.assertEqual(stdout[len(stdout) - 1], 13758663)
-
-
-if __name__ == "__main__":
-    unittest.main()

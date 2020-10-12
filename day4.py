@@ -99,7 +99,3 @@ class TestDay4(unittest.TestCase):
 
     def test_day4_part2(self):
         self.assertEqual(count_passwords(256310, 732736, part2=True), 635)
-
-
-if __name__ == "__main__":
-    unittest.main()

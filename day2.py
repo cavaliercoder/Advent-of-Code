@@ -55,7 +55,3 @@ class TestDay2(unittest.TestCase):
                 for opcode in fp.read().split(",")
             ]
         self.assertEqual(find_input(data, 19690720), 4847)
-
-
-if __name__ == "__main__":
-    unittest.main()

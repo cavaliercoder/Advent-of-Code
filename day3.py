@@ -163,7 +163,3 @@ class TestDay3(unittest.TestCase):
         A = decode_path(lines[0])
         B = decode_path(lines[1])
         self.assertEqual(get_closest_by_distance(A, B), 134662)
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -78,7 +78,3 @@ class TestDay7(unittest.TestCase):
         with open("./day7.input", "r") as fp:
             data = decode(fp.readline())
         self.assertEqual(compute_thrust(data, range(5,10)), 12932154)
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import logging
+
 from typing import List, Optional, Sequence, Tuple
 
 
@@ -18,6 +20,9 @@ OPCODE_HALT = 99
 
 
 Data = List[int]
+
+
+logger = logging.getLogger(__name__)
 
 
 def decode(s: str) -> Data:
@@ -66,9 +71,12 @@ class IntcodeVM:
         self.stdout: Data = []
 
     def step(self) -> bool:
+        """
+        Fetch, decode and execute a single instruction.
+        """
         fn = Instruction(self.data[self.ptr])
         if fn.opcode == OPCODE_HALT:
-            print(f"[{self.ptr:04}] HALT")
+            logger.debug(f"[{self.ptr:04}] HALT")
             return False
         if fn.opcode not in self.handlers:
             raise RuntimeError(f"Unrecognized opcode: {fn.opcode}")
@@ -76,14 +84,22 @@ class IntcodeVM:
         return True
 
     def run(self) -> None:
-        do_step = True
-        while do_step:
-            do_step = self.step()
+        """
+        Call step repeatedly until the VM is halted.
+        """
+        while self.step():
+            pass
 
     def io_push(self, v: int) -> None:
+        """
+        Push a new value to the VM's input buffer.
+        """
         self.stdin.append(v)
     
     def io_pop(self) -> int:
+        """
+        Pop a value from the VM's output buffer.
+        """
         v = self.stdout[0]
         self.stdout = self.stdout[1:]
         return v
@@ -101,7 +117,7 @@ class IntcodeVM:
         b = self.read(self.ptr + 2, fn.get_param(1))
         c = self.read(self.ptr + 3)
         self.data[c] = a + b
-        print(f"[{self.ptr:04}] ADD({a}, {b}) -> {self.data[c]} (@ {c})")
+        logger.debug(f"[{self.ptr:04}] ADD({a}, {b}) -> {self.data[c]} (@ {c})")
         self.ptr += 4
 
     def op_multiply(self, fn: Instruction) -> None:
@@ -109,7 +125,7 @@ class IntcodeVM:
         b = self.read(self.ptr + 2, fn.get_param(1))
         c = self.read(self.ptr + 3)
         self.data[c] = a * b
-        print(f"[{self.ptr:04}] MUL({a}, {b}) -> {self.data[c]} (@ {c})")
+        logger.debug(f"[{self.ptr:04}] MUL({a}, {b}) -> {self.data[c]} (@ {c})")
         self.ptr += 4
 
     def op_input(self, fn: Instruction) -> None:
@@ -120,13 +136,13 @@ class IntcodeVM:
         else:
             v = int(input(f"[{self.ptr:04}] Enter input: "))
         self.data[addr] = v
-        print(f"[{self.ptr:04}] INPUT({addr}) -> {self.data[addr]}")
+        logger.debug(f"[{self.ptr:04}] INPUT({addr}) -> {self.data[addr]}")
         self.ptr += 2
 
     def op_output(self, fn: Instruction) -> None:
         v = self.read(self.ptr + 1, fn.get_param(0))
         self.stdout.append(v)
-        print(f"[{self.ptr:04}] OUTPUT() -> {v}")
+        logger.debug(f"[{self.ptr:04}] OUTPUT() -> {v}")
         self.ptr += 2
 
     def op_jcc(self, fn: Instruction) -> None:
@@ -137,7 +153,7 @@ class IntcodeVM:
         a = self.read(self.ptr + 1, fn.get_param(0))
         b = self.read(self.ptr + 2, fn.get_param(1))
         result = a != 0
-        print(f"[{self.ptr:04}] JCC({a}, {b}) -> {result}")
+        logger.debug(f"[{self.ptr:04}] JCC({a}, {b}) -> {result}")
         if result:
             self.ptr = b
         else:
@@ -151,7 +167,7 @@ class IntcodeVM:
         a = self.read(self.ptr + 1, fn.get_param(0))
         b = self.read(self.ptr + 2, fn.get_param(1))
         result = a == 0
-        print(f"[{self.ptr:04}] JNC({a}, {b}) -> {result}")
+        logger.debug(f"[{self.ptr:04}] JNC({a}, {b}) -> {result}")
         if result:
             self.ptr = b
         else:
@@ -166,7 +182,7 @@ class IntcodeVM:
         b = self.read(self.ptr + 2, fn.get_param(1))
         c = self.read(self.ptr + 3)
         self.data[c] = int(a < b)
-        print(f"[{self.ptr:04}] LT({a}, {b}, {c}) -> {self.data[c]}")
+        logger.debug(f"[{self.ptr:04}] LT({a}, {b}, {c}) -> {self.data[c]}")
         self.ptr += 4
 
     def op_eq(self, fn: Instruction) -> None:
@@ -178,5 +194,5 @@ class IntcodeVM:
         b = self.read(self.ptr + 2, fn.get_param(1))
         c = self.read(self.ptr + 3)
         self.data[c] = int(a == b)
-        print(f"[{self.ptr:04}] EQ({a}, {b}, {c}) -> {self.data[c]}")
+        logger.debug(f"[{self.ptr:04}] EQ({a}, {b}, {c}) -> {self.data[c]}")
         self.ptr += 4
