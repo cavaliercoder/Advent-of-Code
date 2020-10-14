@@ -123,9 +123,6 @@ class IntcodeVM:
         )
         logger.debug(f"[{self.reg_pc:04}] {opcode}({params_str})  # {raw_str}")
 
-    def _log_result(self, result: Any) -> None:
-        logger.debug(f"  -> {result}")
-
     @property
     def halted(self) -> bool:
         return self.opcode == Opcode.HALT
@@ -269,7 +266,6 @@ class IntcodeVM:
         addr = self.read(self.reg_pc + 2, self.param_modes[1])
         v = a != 0
         if v:
-            self._log_result(addr)
             self.reg_pc = addr
         else:
             self.reg_pc += 3
