@@ -49,7 +49,7 @@ class Password:
     def is_valid2(self) -> bool:
         if not self.is_valid:
             return False
-        
+
         # the two adjacent matching digits are not part
         # of a larger group of matching digits
         track = self.data[0]

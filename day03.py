@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from dataclasses import dataclass
-from typing import Optional, Sequence
+from typing import List, Optional, Sequence
 
 import unittest
 
@@ -72,11 +72,11 @@ class Line:
         return None
 
 
-Path = Sequence[Line]
+Path = List[Line]
 
 
-def decode_path(line: str) -> Path:
-    tokens = line.split(",")
+def decode_path(s: str) -> Path:
+    tokens = s.split(",")
     x, y, d = 0, 0, 0
     path: Path = []
     for token in tokens:
@@ -99,15 +99,17 @@ def decode_path(line: str) -> Path:
 
 
 def get_intersections(A: Path, B: Path) -> Sequence[Point]:
-    intersections = []
+    intersections: List[Point] = []
     for line_a in A:
         for line_b in B:
             intersection = line_a.intersection(line_b)
             if intersection:
                 # compute score
                 intersection.score = (
-                    line_a.score + Line(line_a.a, intersection).length
-                    + line_b.score + Line(line_b.a, intersection).length
+                    line_a.score
+                    + Line(line_a.a, intersection).length
+                    + line_b.score
+                    + Line(line_b.a, intersection).length
                 )
                 intersections.append(intersection)
     return intersections
@@ -141,7 +143,7 @@ class TestDay3(unittest.TestCase):
         self.assertEqual(get_closest_by_manhattan(A, B), 135)
 
     def test_part1(self):
-        with open("./day3.input", "r") as fp:
+        with open("./day03.input", "r") as fp:
             lines = fp.readlines()
         A = decode_path(lines[0])
         B = decode_path(lines[1])
@@ -156,9 +158,9 @@ class TestDay3(unittest.TestCase):
         A = decode_path("R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51")
         B = decode_path("U98,R91,D20,R16,D67,R40,U7,R15,U6,R7")
         self.assertEqual(get_closest_by_distance(A, B), 410)
-    
+
     def test_part2(self):
-        with open("./day3.input", "r") as fp:
+        with open("./day03.input", "r") as fp:
             lines = fp.readlines()
         A = decode_path(lines[0])
         B = decode_path(lines[1])

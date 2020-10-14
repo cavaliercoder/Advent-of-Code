@@ -55,7 +55,7 @@ class TestDay7(unittest.TestCase):
         self.assertEqual(compute_thrust(data, range(5)), 65210)
 
     def test_part1(self):
-        with open("./day7.input", "r") as fp:
+        with open("./day07.input", "r") as fp:
             data = decode(fp.readline())
         self.assertEqual(compute_thrust(data, range(5)), 13848)
 
@@ -65,7 +65,6 @@ class TestDay7(unittest.TestCase):
         )
         self.assertEqual(compute_thrust(data, range(5, 10)), 139629729)
 
-
     def test_part2_example2(self):
         data = decode(
             "3,52,1001,52,-5,52,3,53,1,52,56,54,1007,54,5,55,1005,55,26,1001,54,"
@@ -73,8 +72,8 @@ class TestDay7(unittest.TestCase):
             "53,1001,56,-1,56,1005,56,6,99,0,0,0,0,10"
         )
         self.assertEqual(compute_thrust(data, range(5, 10)), 18216)
-    
+
     def test_part2(self):
-        with open("./day7.input", "r") as fp:
+        with open("./day07.input", "r") as fp:
             data = decode(fp.readline())
-        self.assertEqual(compute_thrust(data, range(5,10)), 12932154)
+        self.assertEqual(compute_thrust(data, range(5, 10)), 12932154)

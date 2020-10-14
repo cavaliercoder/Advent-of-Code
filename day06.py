@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Sequence
+from typing import Dict, List, Mapping, Optional, Sequence
 
 import unittest
 
@@ -20,8 +20,8 @@ def load_orbits(file: str) -> Dict[str, str]:
     return parse_orbits(s)
 
 
-def get_graph(orbits: Dict[str, str]) -> Dict[str, Sequence[str]]:
-    graph = {}
+def get_graph(orbits: Dict[str, str]) -> Mapping[str, Sequence[str]]:
+    graph: Dict[str, List[str]] = {}
 
     def add_edge(parent: str, child: str) -> None:
         if parent in graph:
@@ -37,7 +37,7 @@ def get_graph(orbits: Dict[str, str]) -> Dict[str, Sequence[str]]:
 
 
 def count_orbits(orbits: Dict[str, str]) -> int:
-    cache = {}
+    cache: Dict[str, int] = {}
 
     def count_orbit(body: str) -> int:
         if body == "COM":
@@ -51,7 +51,7 @@ def count_orbits(orbits: Dict[str, str]) -> int:
     return sum(count_orbit(body) for body in orbits)
 
 
-def count_transfers(graph: Dict[str, Sequence[str]], needle = "SAN", start = "YOU") -> int:
+def count_transfers(graph: Dict[str, Sequence[str]], needle="SAN", start="YOU") -> int:
     seen = set()
     distances = {start: 0}
     stack = [start]
@@ -70,11 +70,11 @@ def count_transfers(graph: Dict[str, Sequence[str]], needle = "SAN", start = "YO
 
 class TestDay6(unittest.TestCase):
     def test_part1(self):
-        orbits = load_orbits("./day6.input")
+        orbits = load_orbits("./day06.input")
         self.assertEqual(count_orbits(orbits), 312697)
 
     def test_part2(self):
-        result = count_transfers(get_graph(load_orbits("./day6.input")))
+        result = count_transfers(get_graph(load_orbits("./day06.input")))
         self.assertEqual(result, 466)
 
     def test_part2_example1(self):

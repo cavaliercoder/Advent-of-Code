@@ -23,14 +23,14 @@ class TestDay9(unittest.TestCase):
         self.assertEqual(vm.stdout[0], 1125899906842624)
 
     def test_part1(self):
-        with open("./day9.input", "r") as fp:
+        with open("./day09.input", "r") as fp:
             data = decode(fp.readline())
         vm = IntcodeVM(data, [1])
         vm.run()
         self.assertListEqual(vm.stdout, [3335138414])
 
     def test_part2(self):
-        with open("./day9.input", "r") as fp:
+        with open("./day09.input", "r") as fp:
             data = decode(fp.readline())
         vm = IntcodeVM(data, [2])
         vm.run()

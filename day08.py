@@ -26,16 +26,16 @@ def part2(image: str, width: int, height: int) -> str:
             buf[j] = charmap[int(image[i])]
     lines = []
     for i in range(0, len(buf), width):
-        lines.append("".join(buf[i:i+width])+"\n")
+        lines.append("".join(buf[i : i + width]) + "\n")
     return "".join(lines)
 
 
 class TestDay8(unittest.TestCase):
     def test_part1(self):
-        with open("day8.input", "r") as fp:
+        with open("day08.input", "r") as fp:
             image = fp.readline().rstrip()
         self.assertEqual(part1(image, 25, 6), 1560)
-    
+
     def test_part2(self):
         expect = (
             "█  █  ██   ██  █  █ █  █ \n"
@@ -45,7 +45,7 @@ class TestDay8(unittest.TestCase):
             "█  █ █  █ █  █ █  █ █  █ \n"
             " ██   ███  ██   ██  █  █ \n"
         )
-        with open("day8.input", "r") as fp:
+        with open("day08.input", "r") as fp:
             image = fp.readline().rstrip()
         actual = part2(image, 25, 6)
         self.assertEqual(actual, expect)

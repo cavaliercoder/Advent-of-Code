@@ -96,7 +96,6 @@ class Robot:
         # run the program until output is availble
         while len(self.vm.stdout) < 2:
             if not self.vm.step():
-                # print("  -> End")
                 return False
 
         # paint
@@ -147,7 +146,7 @@ class TestDay11(unittest.TestCase):
         with open("./day11.input", "r") as fp:
             data = decode(fp.readline())
         robot = Robot(data)
-        robot.grid[(0,0)] = Color.WHITE
+        robot.grid[(0, 0)] = Color.WHITE
         robot.run()
         actual = str(robot.grid)
         self.assertEqual(actual, expect)

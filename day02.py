@@ -39,19 +39,13 @@ def find_input(data: Data, needle: int) -> int:
 
 class TestDay2(unittest.TestCase):
     def test_part1(self):
-        with open("./day2.input", "r") as fp:
-            data = [
-                int(opcode)
-                for opcode in fp.read().split(",")
-            ]
+        with open("./day02.input", "r") as fp:
+            data = [int(opcode) for opcode in fp.read().split(",")]
         data[1] = 12
         data[2] = 2
         self.assertEqual(run(data), 5110675)
 
     def test_part2(self):
-        with open("./day2.input", "r") as fp:
-            data = [
-                int(opcode)
-                for opcode in fp.read().split(",")
-            ]
+        with open("./day02.input", "r") as fp:
+            data = [int(opcode) for opcode in fp.read().split(",")]
         self.assertEqual(find_input(data, 19690720), 4847)

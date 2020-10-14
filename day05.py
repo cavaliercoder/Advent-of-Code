@@ -8,11 +8,11 @@ from intcode import decode, Data, IntcodeVM, run, load_and_run
 
 class TestIntcodeVM(unittest.TestCase):
     def test_part1(self):
-        stdout = load_and_run("./day5.input", stdin=[1])
+        stdout = load_and_run("./day05.input", stdin=[1])
         self.assertEqual(stdout[len(stdout) - 1], 7988899)
 
     def test_part2(self):
-        stdout = load_and_run("./day5.input", stdin=[5])
+        stdout = load_and_run("./day05.input", stdin=[5])
         self.assertEqual(stdout[len(stdout) - 1], 13758663)
 
     def test_part2_example1(self):
