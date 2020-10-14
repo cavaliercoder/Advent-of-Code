@@ -16,7 +16,7 @@ def part1(image: str, width: int, height: int) -> int:
     return layers[0][1] * layers[0][2]
 
 
-def part2(image: str, width: int, height: int) -> None:
+def part2(image: str, width: int, height: int) -> str:
     charmap = [" ", "█", "?"]
     layer_size = width * height
     buf = ["?"] * layer_size
@@ -24,8 +24,10 @@ def part2(image: str, width: int, height: int) -> None:
         j = i % layer_size
         if buf[j] == "?":
             buf[j] = charmap[int(image[i])]
+    lines = []
     for i in range(0, len(buf), width):
-        print("".join(buf[i:i+width]))
+        lines.append("".join(buf[i:i+width])+"\n")
+    return "".join(lines)
 
 
 class TestDay8(unittest.TestCase):
@@ -35,7 +37,15 @@ class TestDay8(unittest.TestCase):
         self.assertEqual(part1(image, 25, 6), 1560)
     
     def test_part2(self):
+        expect = (
+            "█  █  ██   ██  █  █ █  █ \n"
+            "█  █ █  █ █  █ █  █ █  █ \n"
+            "█  █ █    █    █  █ ████ \n"
+            "█  █ █ ██ █    █  █ █  █ \n"
+            "█  █ █  █ █  █ █  █ █  █ \n"
+            " ██   ███  ██   ██  █  █ \n"
+        )
         with open("day8.input", "r") as fp:
             image = fp.readline().rstrip()
-        print()
-        part2(image, 25, 6)
+        actual = part2(image, 25, 6)
+        self.assertEqual(actual, expect)
