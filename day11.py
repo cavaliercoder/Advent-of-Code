@@ -5,6 +5,9 @@ from intcode import IntcodeVM, Data, decode
 from typing import Dict, Tuple
 
 
+Position = Tuple[int, int]
+
+
 class Color(Enum):
     BLACK = 0
     WHITE = 1
@@ -23,32 +26,72 @@ class Orientation(Enum):
         return Orientation((4 + self.value + 1) % 4)
 
 
+class Grid:
+    def __init__(self) -> None:
+        self.data: Dict[int, Dict[int, Color]] = {}
+        self.min_x = 0
+        self.max_x = 0
+        self.min_y = 0
+        self.max_y = 0
+
+    def __getitem__(self, position: Position) -> Color:
+        x, y = position
+        if x in self.data:
+            if y in self.data[x]:
+                return self.data[x][y]
+        return Color.BLACK
+
+    def __setitem__(self, position: Position, color: Color) -> None:
+        x, y = position
+        if x in self.data:
+            self.data[x][y] = color
+        else:
+            self.data[x] = {y: color}
+        if x < self.min_x:
+            self.min_x = x
+        if x > self.max_x:
+            self.max_x = x
+        if y < self.min_y:
+            self.min_y = y
+        if y > self.max_y:
+            self.max_y = y
+
+    def __len__(self) -> int:
+        return sum([len(plane) for plane in self.data.values()])
+
+    def __str__(self) -> str:
+        charmap = {
+            Color.BLACK: " ",
+            Color.WHITE: "█",
+        }
+        lines = []
+        for y in range(self.height):
+            line = [
+                charmap[self[(self.min_x + x, self.min_y + y)]]
+                for x in range(self.width)
+            ]
+            lines.append("".join(line) + "\n")
+        return "".join(lines)
+
+    @property
+    def width(self) -> int:
+        return self.max_x - self.min_x + 1
+
+    @property
+    def height(self) -> int:
+        return self.max_y - self.min_y + 1
+
+
 class Robot:
     def __init__(self, program: Data) -> None:
         self.vm = IntcodeVM(program)
-        self.grid = {0: {0: Color.BLACK}}
+        self.grid = Grid()
         self.orientation = Orientation.UP
         self.position = (0, 0)
-        self.color = Color.BLACK
-
-    def get_color(self, position: Tuple[int, int]) -> Color:
-        x, y = position
-        if x in self.grid:
-            if y in self.grid[x]:
-                return self.grid[x][y]
-        return Color.BLACK
-
-    def paint(self, color: Color) -> None:
-        x, y = self.position
-        if x in self.grid:
-            self.grid[x][y] = color
-        else:
-            self.grid[x] = {y: color}
-        self.color = color
 
     def step(self) -> bool:
         # get current color
-        self.vm.io_push(self.get_color(self.position).value)
+        self.vm.io_push(self.grid[self.position].value)
 
         # run the program until output is availble
         while len(self.vm.stdout) < 2:
@@ -58,7 +101,7 @@ class Robot:
 
         # paint
         color = Color(self.vm.io_pop())
-        self.paint(color)
+        self.grid[self.position] = color
 
         # turn
         direction = self.vm.io_pop()
@@ -83,36 +126,6 @@ class Robot:
         while self.step():
             pass
 
-    def render(self) -> str:
-        # find bounds
-        min_x = 0
-        min_y = 0
-        max_x = 0
-        max_y = 0
-        for x in self.grid:
-            if x < min_x:
-                min_x = x
-            if x > max_x:
-                max_x = x
-            for y in self.grid[x]:
-                if y < min_y:
-                    min_y = y
-                if y > max_y:
-                    max_y = y
-        w = max_x - min_x + 1
-        h = max_y - min_y + 1
-
-        # print
-        charmap = {
-            Color.BLACK: " ",
-            Color.WHITE: "█",
-        }
-        lines = []
-        for y in range(h):
-            line = [charmap[self.get_color((min_x + x, min_y + y))] for x in range(w)]
-            lines.append("".join(line) + "\n")
-        return "".join(lines)
-
 
 class TestDay11(unittest.TestCase):
     def test_part1(self):
@@ -120,8 +133,7 @@ class TestDay11(unittest.TestCase):
             data = decode(fp.readline())
         robot = Robot(data)
         robot.run()
-        n = sum([len(plane) for plane in robot.grid.values()])
-        self.assertEqual(n, 1747)
+        self.assertEqual(len(robot.grid), 1747)
 
     def test_part2(self):
         expect = (
@@ -135,7 +147,7 @@ class TestDay11(unittest.TestCase):
         with open("./day11.input", "r") as fp:
             data = decode(fp.readline())
         robot = Robot(data)
-        robot.paint(Color.WHITE)
+        robot.grid[(0,0)] = Color.WHITE
         robot.run()
-        actual = robot.render()
+        actual = str(robot.grid)
         self.assertEqual(actual, expect)
