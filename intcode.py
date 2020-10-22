@@ -3,7 +3,7 @@
 import logging
 
 from enum import Enum
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
 
 Data = List[int]
@@ -56,9 +56,17 @@ def decode(s: str) -> Data:
     return [int(opcode) for opcode in s.split(",")]
 
 
+def load(name: str) -> Data:
+    with open(name, "r") as fp:
+        return decode(fp.readline())
+
+
 class IntcodeVM:
     def __init__(
-        self, data: Optional[Data] = None, stdin: Optional[Data] = None
+        self,
+        data: Optional[Data] = None,
+        stdin: Optional[Data] = None,
+        trap_input: Optional[Callable[[], int]] = None,
     ) -> None:
         self.handlers = {
             Opcode.ADD: self._op_add,
@@ -71,6 +79,7 @@ class IntcodeVM:
             Opcode.EQ: self._op_equal,
             Opcode.RELBASE: self._op_relbase,
         }
+        self.trap_input = trap_input or self._trap_input
         self.reset(data, stdin)
 
     def reset(self, data: Optional[Data], stdin: Optional[Data] = None) -> None:
@@ -215,6 +224,12 @@ class IntcodeVM:
         self.data[addr] = v
         logger.debug(f"  write(addr={addr}, v={v})")
 
+    def _trap_input(self) -> int:
+        """
+        Trap handler for reading input if the input buffer is empty.
+        """
+        return int(input(f"[{self.reg_pc:04}] Enter input: "))
+
     def _op_add(self) -> None:
         """
         Opcode 1 adds together numbers read from two positions and stores the result in a third
@@ -247,7 +262,7 @@ class IntcodeVM:
             v = self.stdin[0]
             self.stdin = self.stdin[1:]
         else:
-            v = int(input(f"[{self.reg_pc:04}] Enter input: "))
+            v = self.trap_input()
         addr = self.effective_addr(self.reg_pc + 1, self.param_modes[0])
         self.write(addr, v)
         self.reg_pc += 2
@@ -324,6 +339,4 @@ def run(data: Data, stdin: Optional[Data] = None) -> Data:
 
 
 def load_and_run(file: str, stdin: Optional[Data] = None) -> Data:
-    with open(file, "r") as fp:
-        data = decode(fp.readline())
-    return run(data, stdin=stdin)
+    return run(data=load(file), stdin=stdin)
