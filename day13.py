@@ -140,7 +140,6 @@ def learn_and_score(data: Data, stdscr: Any = None) -> int:
     cab = ArcadeCabinet(data)
     cab.vm.data[0] = 2  # insert coin!
     state = cab.vm.data.copy()
-    # frame = 0
     moves: List[int] = []
     while True:
         cab = ArcadeCabinet(state)
@@ -156,10 +155,6 @@ def learn_and_score(data: Data, stdscr: Any = None) -> int:
 
         # reset to last good state
         state = cab.last_good_state
-        # frame += cab.frame
-        # with open(f"./.state-{frame:06}.data", "w") as fp:
-        #     fp.write(",".join([str(i) for i in state]))
-        #     fp.write("\n")
 
 
 class TestDay13(unittest.TestCase):
