@@ -3,7 +3,7 @@
 from typing import List
 import unittest
 
-from intcode import decode, Data, IntcodeVM, run, load_and_run
+from lib.intcode import decode, Data, IntcodeVM, run, load_and_run
 
 
 class TestIntcodeVM(unittest.TestCase):

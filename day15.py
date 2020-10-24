@@ -1,9 +1,13 @@
 import unittest
 
 from enum import Enum
-from intcode import IntcodeVM, load
+from io import StringIO
 from sys import stdout
+from time import sleep
 from typing import Any, Dict, Optional, List, Tuple, IO
+
+from lib.curses import CursesScreen
+from lib.intcode import IntcodeVM, load
 
 
 class Direction(Enum):
@@ -107,6 +111,13 @@ class Grid:
             return
         self.cells[pos.y] = {pos.x: cell}
 
+    def __str__(self) -> str:
+        f = StringIO()
+        self.print(f)
+        s = f.getvalue()
+        f.close()
+        return s
+
     def distance_to(self, pos: Position) -> int:
         if pos in self:
             # distance is already known
@@ -171,7 +182,7 @@ class Grid:
                     f.write("^")
                     continue
                 if not pos in self:
-                    f.write("?")
+                    f.write("█")
                     continue
                 cell = self[pos]
                 if cell.status == Status.WALL:
@@ -253,3 +264,34 @@ class TestDay15(unittest.TestCase):
         while droid.explore():
             continue
         self.assertEqual(droid.grid.oxygenate(droid.oxygen_system_pos), 314)
+
+
+if __name__ == "__main__":
+    offset_x = 0
+    offset_y = 0
+    pos = Position(0, 0)
+    with CursesScreen() as stdscr:
+        # map whole grid
+        droid = Droid()
+        while droid.explore():
+            continue
+
+        # draw grid
+        stdscr.addstr(str(droid.grid))
+        stdscr.refresh()
+
+        # compute offset of droid on screen
+        offset_x = abs(droid.grid.min_x)
+        offset_y = abs(droid.grid.min_y)
+
+        # re-run and draw droid movement
+        droid2 = Droid()
+        pos = Position(offset_x, offset_y)
+        while droid2.explore():
+            stdscr.addstr(pos.y, pos.x, ".")
+            pos.x = offset_x + droid2.pos.x
+            pos.y = offset_y + droid2.pos.y
+            stdscr.addstr(pos.y, pos.x, "0")
+            stdscr.refresh()
+            sleep(0.05)
+        sleep(5)

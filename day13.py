@@ -2,11 +2,12 @@ import curses
 import unittest
 
 from enum import Enum
-from intcode import IntcodeVM, Data, load
 from typing import Any, Dict, Optional, List, Tuple, IO
 from time import sleep
 from sys import stdout
 
+from lib.intcode import IntcodeVM, Data, load
+from lib.curses import CursesScreen
 
 Position = Tuple[int, int]  # (x, y)
 
@@ -109,27 +110,6 @@ class ArcadeCabinet:
         while not self.vm.halted:
             self.step()
         return not self.failed
-
-
-class CursesScreen:
-    """
-    Setup and tear down a Cursors window.
-    """
-
-    def __enter__(self):
-        self.stdscr = curses.initscr()
-        curses.noecho()
-        curses.cbreak()
-        curses.curs_set(False)
-        self.stdscr.nodelay(True)
-        self.stdscr.keypad(1)
-        return self.stdscr
-
-    def __exit__(self, type, value, traceback):
-        self.stdscr.keypad(0)
-        curses.echo()
-        curses.nocbreak()
-        curses.endwin()
 
 
 def learn_and_score(data: Data, stdscr: Any = None) -> int:

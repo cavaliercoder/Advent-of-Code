@@ -1,8 +1,9 @@
 import unittest
 
 from enum import Enum
-from intcode import IntcodeVM, Data, decode
 from typing import Dict, Tuple
+
+from lib.intcode import IntcodeVM, Data, decode
 
 
 Position = Tuple[int, int]

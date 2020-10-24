@@ -1,6 +1,6 @@
 import unittest
 
-from intcode import IntcodeVM, Data, decode
+from lib.intcode import IntcodeVM, Data, decode
 
 
 class TestDay9(unittest.TestCase):

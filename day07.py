@@ -4,7 +4,8 @@ import unittest
 
 from typing import Iterable, Sequence
 from itertools import permutations
-from intcode import decode, IntcodeVM, Data
+
+from lib.intcode import decode, IntcodeVM, Data
 
 
 def thrust(data: Data, phase_sequence: Sequence[int]) -> int:
