@@ -1,7 +1,6 @@
 import curses
 import unittest
 
-
 from enum import Enum
 from intcode import IntcodeVM, Data, load
 from typing import Any, Dict, Optional, List, Tuple, IO
