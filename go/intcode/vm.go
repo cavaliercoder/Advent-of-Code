@@ -1,14 +1,10 @@
 package intcode
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
-	"strconv"
-	"strings"
 )
 
 var (
@@ -17,41 +13,6 @@ var (
 	ErrNoInput  = errors.New("no input")
 	ErrNoOutput = errors.New("no output")
 )
-
-// Data is a slice of program and data memory for the VM.
-type Data []int
-
-// DecodeData reads Data from a file and decodes it from a comma-seperated
-// string format.
-func DecodeData(r io.Reader) (data Data, err error) {
-	var b []byte
-	var v int
-	b, err = ioutil.ReadAll(r)
-	if err != nil {
-		return
-	}
-	parts := bytes.Split(b, []byte{','})
-	data = make([]int, len(parts))
-	for i := 0; i < len(parts); i++ {
-		v, err = strconv.Atoi(strings.TrimRight(string(parts[i]), "\n"))
-		if err != nil {
-			return
-		}
-		data[i] = v
-	}
-	return
-}
-
-// OpenData reads all data from a file.
-func OpenData(name string) (data Data, err error) {
-	var f *os.File
-	f, err = os.Open(name)
-	if err != nil {
-		return
-	}
-	defer f.Close()
-	return DecodeData(f)
-}
 
 // Opcode is the ID of a function that the VM can perform.
 type Opcode int
@@ -151,7 +112,7 @@ type VirtualMachine interface {
 
 type virtualMachine struct {
 	data        Data
-	handlers    []opcodeHandler
+	handlers    map[Opcode]opcodeHandler
 	stdin       []int
 	stdout      []int
 	opcode      Opcode
@@ -168,17 +129,18 @@ func New(data Data) VirtualMachine {
 		stdin:  make([]int, 0, 64),
 		stdout: make([]int, 0, 64),
 	}
-	v.handlers = []opcodeHandler{
-		v.opIllegal,
-		v.opAdd,
-		v.opMultiply,
-		v.opInput,
-		v.opOutput,
-		v.opJumpIfTrue,
-		v.opJumpIfNotTrue,
-		v.opLessThan,
-		v.opEqual,
-		v.opRelBase,
+	v.handlers = map[Opcode]opcodeHandler{
+		OpcodeIllegal:  v.opIllegal,
+		OpcodeAdd:      v.opAdd,
+		OpcodeMultiply: v.opMultiply,
+		OpcodeInput:    v.opInput,
+		OpcodeOutput:   v.opOutput,
+		OpcodeJCC:      v.opJumpIfTrue,
+		OpcodeJNC:      v.opJumpIfNotTrue,
+		OpcodeLessThan: v.opLessThan,
+		OpcodeEqual:    v.opEqual,
+		OpcodeRelBase:  v.opRelBase,
+		OpcodeHalt:     v.opHalt,
 	}
 	if os.Getenv("LOGLEVEL") == "DEBUG" {
 		v.traceWriter = os.Stderr
@@ -224,26 +186,29 @@ func (c *virtualMachine) traceStep() {
 }
 
 func (c *virtualMachine) Step() error {
-	// fetch and decode
+	// fetch
 	v := Instruction(c.MemGet(c.regPC, AddressModeImmediate))
+
+	// decode
 	c.opcode = v.Opcode()
 	c.modes = v.Modes()
-	c.traceStep()
 
-	// dispatch
-	if c.opcode == OpcodeHalt {
-		return ErrHalted
+	// execute
+	c.traceStep()
+	fn, ok := c.handlers[c.opcode]
+	if !ok {
+		fn = c.opIllegal
 	}
-	return c.handlers[c.opcode]()
+	return fn()
 }
 
-func (c *virtualMachine) Run() error {
+func (c *virtualMachine) Run() (err error) {
 	for {
-		if err := c.Step(); err != nil {
+		if err = c.Step(); err != nil {
 			if err == ErrHalted {
 				return nil
 			}
-			return err
+			return
 		}
 	}
 }
@@ -412,4 +377,8 @@ func (c *virtualMachine) opRelBase() error {
 	c.regRelBase += Address(c.MemGet(c.regPC+1, c.modes[0]))
 	c.regPC += 2
 	return nil
+}
+
+func (c *virtualMachine) opHalt() error {
+	return ErrHalted
 }
