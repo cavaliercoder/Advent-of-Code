@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
+import unittest
 
 from dataclasses import dataclass
 from typing import List, Optional, Sequence
 
-import unittest
+from common import open_fixture
 
 
 def abs(n: int) -> int:
@@ -143,7 +144,7 @@ class TestDay3(unittest.TestCase):
         self.assertEqual(get_closest_by_manhattan(A, B), 135)
 
     def test_part1(self):
-        with open("./day03.input", "r") as fp:
+        with open_fixture("day03") as fp:
             lines = fp.readlines()
         A = decode_path(lines[0])
         B = decode_path(lines[1])
@@ -160,7 +161,7 @@ class TestDay3(unittest.TestCase):
         self.assertEqual(get_closest_by_distance(A, B), 410)
 
     def test_part2(self):
-        with open("./day03.input", "r") as fp:
+        with open_fixture("day03") as fp:
             lines = fp.readlines()
         A = decode_path(lines[0])
         B = decode_path(lines[1])

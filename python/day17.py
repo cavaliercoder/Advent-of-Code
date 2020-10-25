@@ -6,8 +6,8 @@ from io import StringIO
 from time import sleep
 from typing import Any, IO, List, Iterator, Tuple
 
-from lib.curses import CursesScreen
-from lib.intcode import IntcodeVM, load
+from common import CursesScreen, open_fixture
+from intcode import IntcodeVM, decode
 
 
 GRID_WIDTH = 45
@@ -33,7 +33,9 @@ class Ascii:
         self,
         wake_up: bool = False,
     ):
-        self.vm = IntcodeVM(load("./day17.input"))
+        with open_fixture("day17") as fp:
+            data = decode(fp.readline())
+        self.vm = IntcodeVM(data)
         if wake_up:
             self.vm.data[0] = 2
 

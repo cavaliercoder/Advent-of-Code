@@ -1,6 +1,7 @@
 import unittest
 
-from lib.intcode import IntcodeVM, Data, decode
+from common import open_fixture
+from intcode import IntcodeVM, Data, decode
 
 
 class TestDay9(unittest.TestCase):
@@ -23,14 +24,14 @@ class TestDay9(unittest.TestCase):
         self.assertEqual(vm.stdout[0], 1125899906842624)
 
     def test_part1(self):
-        with open("./day09.input", "r") as fp:
+        with open_fixture("day09") as fp:
             data = decode(fp.readline())
         vm = IntcodeVM(data, [1])
         vm.run()
         self.assertListEqual(vm.stdout, [3335138414])
 
     def test_part2(self):
-        with open("./day09.input", "r") as fp:
+        with open_fixture("day09") as fp:
             data = decode(fp.readline())
         vm = IntcodeVM(data, [2])
         vm.run()

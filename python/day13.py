@@ -6,8 +6,9 @@ from typing import Any, Dict, Optional, List, Tuple, IO
 from time import sleep
 from sys import stdout
 
-from lib.intcode import IntcodeVM, Data, load
-from lib.curses import CursesScreen
+from common import CursesScreen, open_fixture
+from intcode import IntcodeVM, Data, decode
+
 
 Position = Tuple[int, int]  # (x, y)
 
@@ -138,16 +139,22 @@ def learn_and_score(data: Data, stdscr: Any = None) -> int:
 
 class TestDay13(unittest.TestCase):
     def test_part1(self):
-        cab = ArcadeCabinet(load("./day13.input"))
+        with open_fixture("day13") as fp:
+            data = decode(fp.readline())
+        cab = ArcadeCabinet(data)
         cab.run()
         self.assertEqual(cab.init_block_count, 420)
 
     def test_part2(self):
-        score = learn_and_score(load("./day13-frame10588.input"))
+        with open_fixture("day13-frame10588") as fp:
+            data = decode(fp.readline())
+        score = learn_and_score(data)
         self.assertEqual(score, 21651)
 
 
 if __name__ == "__main__":
+    with open_fixture("day13") as fp:
+        data = decode(fp.readline())
     with CursesScreen() as stdscr:
-        score = learn_and_score(load("./day13.input"), stdscr=stdscr)
+        score = learn_and_score(data, stdscr=stdscr)
     print(f"Score: {score}")

@@ -1,18 +1,31 @@
 #!/usr/bin/env python3
-
-from typing import List
 import unittest
 
-from lib.intcode import decode, Data, IntcodeVM, run, load_and_run
+from typing import List, Optional
+
+from common import open_fixture
+from intcode import decode, Data, IntcodeVM
+
+
+def run(data: Data, stdin: Optional[Data] = None) -> Data:
+    vm = IntcodeVM(data, stdin=stdin)
+    vm.run()
+    return vm.stdout
+
+
+def run_file(name: str, stdin: Optional[Data] = None) -> Data:
+    with open_fixture(name) as fp:
+        data = decode(fp.readline())
+    return run(data, stdin=stdin)
 
 
 class TestIntcodeVM(unittest.TestCase):
     def test_part1(self):
-        stdout = load_and_run("./day05.input", stdin=[1])
+        stdout = run_file("day05", stdin=[1])
         self.assertEqual(stdout[len(stdout) - 1], 7988899)
 
     def test_part2(self):
-        stdout = load_and_run("./day05.input", stdin=[5])
+        stdout = run_file("day05", stdin=[5])
         self.assertEqual(stdout[len(stdout) - 1], 13758663)
 
     def test_part2_example1(self):

@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
+import unittest
 
 from typing import List, Tuple
-import unittest
+
+from common import open_fixture
+
 
 NOUN = 1
 VERB = 2
@@ -39,13 +42,13 @@ def find_input(data: Data, needle: int) -> int:
 
 class TestDay2(unittest.TestCase):
     def test_part1(self):
-        with open("./day02.input", "r") as fp:
+        with open_fixture("day02") as fp:
             data = [int(opcode) for opcode in fp.read().split(",")]
         data[1] = 12
         data[2] = 2
         self.assertEqual(run(data), 5110675)
 
     def test_part2(self):
-        with open("./day02.input", "r") as fp:
+        with open_fixture("day02") as fp:
             data = [int(opcode) for opcode in fp.read().split(",")]
         self.assertEqual(find_input(data, 19690720), 4847)

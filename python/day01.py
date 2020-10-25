@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
+import unittest
 
 from math import floor
 from typing import Sequence
-import unittest
+
+from common import open_fixture
 
 
 def get_fuel_for_module(mass: float, recursive: bool = False) -> float:
@@ -25,7 +27,7 @@ def get_fuel_for_modules(masses: Sequence[int], recursive: bool = False) -> floa
 
 class TestDay1(unittest.TestCase):
     def test_part1(self):
-        with open("./day01.input", "r") as fp:
+        with open_fixture("day01") as fp:
             masses = [float(line.rstrip()) for line in fp.readlines()]
         fuel_required = get_fuel_for_modules(masses)
         self.assertEqual(fuel_required, 3235550)
@@ -36,7 +38,7 @@ class TestDay1(unittest.TestCase):
         self.assertEqual(get_fuel_for_module(100756, recursive=True), 50346)
 
     def test_part2(self):
-        with open("./day01.input", "r") as fp:
+        with open_fixture("day01") as fp:
             masses = [float(line.rstrip()) for line in fp.readlines()]
         fuel_required = get_fuel_for_modules(masses, recursive=True)
         self.assertEqual(fuel_required, 4850462)

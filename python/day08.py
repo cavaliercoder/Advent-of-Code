@@ -2,6 +2,8 @@
 
 import unittest
 
+from common import open_fixture
+
 
 def part1(image: str, width: int, height: int) -> int:
     layer_size = width * height
@@ -32,7 +34,7 @@ def part2(image: str, width: int, height: int) -> str:
 
 class TestDay8(unittest.TestCase):
     def test_part1(self):
-        with open("day08.input", "r") as fp:
+        with open_fixture("day08") as fp:
             image = fp.readline().rstrip()
         self.assertEqual(part1(image, 25, 6), 1560)
 
@@ -45,7 +47,7 @@ class TestDay8(unittest.TestCase):
             "█  █ █  █ █  █ █  █ █  █ \n"
             " ██   ███  ██   ██  █  █ \n"
         )
-        with open("day08.input", "r") as fp:
+        with open_fixture("day08") as fp:
             image = fp.readline().rstrip()
         actual = part2(image, 25, 6)
         self.assertEqual(actual, expect)

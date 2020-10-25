@@ -5,7 +5,8 @@ import unittest
 from typing import Iterable, Sequence
 from itertools import permutations
 
-from lib.intcode import decode, IntcodeVM, Data
+from common import open_fixture
+from intcode import decode, IntcodeVM, Data
 
 
 def thrust(data: Data, phase_sequence: Sequence[int]) -> int:
@@ -56,7 +57,7 @@ class TestDay7(unittest.TestCase):
         self.assertEqual(compute_thrust(data, range(5)), 65210)
 
     def test_part1(self):
-        with open("./day07.input", "r") as fp:
+        with open_fixture("day07") as fp:
             data = decode(fp.readline())
         self.assertEqual(compute_thrust(data, range(5)), 13848)
 
@@ -75,6 +76,6 @@ class TestDay7(unittest.TestCase):
         self.assertEqual(compute_thrust(data, range(5, 10)), 18216)
 
     def test_part2(self):
-        with open("./day07.input", "r") as fp:
+        with open_fixture("day07") as fp:
             data = decode(fp.readline())
         self.assertEqual(compute_thrust(data, range(5, 10)), 12932154)

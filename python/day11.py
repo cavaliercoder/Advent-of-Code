@@ -3,7 +3,8 @@ import unittest
 from enum import Enum
 from typing import Dict, Tuple
 
-from lib.intcode import IntcodeVM, Data, decode
+from common import open_fixture
+from intcode import IntcodeVM, Data, decode
 
 
 Position = Tuple[int, int]
@@ -129,7 +130,7 @@ class Robot:
 
 class TestDay11(unittest.TestCase):
     def test_part1(self):
-        with open("./day11.input", "r") as fp:
+        with open_fixture("day11") as fp:
             data = decode(fp.readline())
         robot = Robot(data)
         robot.run()
@@ -144,7 +145,7 @@ class TestDay11(unittest.TestCase):
             " █    █  █ █  █ █ █  █  █ █ █  █    █  █   \n"
             " ████  ██   ███ █  █ █  █ █  █ ████ ███    \n"
         )
-        with open("./day11.input", "r") as fp:
+        with open_fixture("day11") as fp:
             data = decode(fp.readline())
         robot = Robot(data)
         robot.grid[(0, 0)] = Color.WHITE

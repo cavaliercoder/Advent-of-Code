@@ -2,17 +2,14 @@ import unittest
 
 from typing import Generator, List
 
+from common import open_fixture
+
 
 BASE_PATTERN = (0, 1, 0, -1)
 
 
 def decode(s: str) -> List[int]:
     return [int(c) for c in s.strip()]
-
-
-def load(name: str) -> List[int]:
-    with open(name, "r") as fp:
-        return decode(fp.readline())
 
 
 def pattern(position: int) -> Generator[int, None, None]:
@@ -63,7 +60,8 @@ class TestDay16(unittest.TestCase):
             self.assertListEqual(A[:8], expect)
 
     def test_part1(self):
-        A = load("./day16.input")
+        with open_fixture("day16") as fp:
+            A = decode(fp.readline())
         for _ in range(100):
             fft(A)
         self.assertListEqual(A[:8], decode("96136976"))

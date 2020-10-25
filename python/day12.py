@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from hashlib import sha256
 from typing import Any, Sequence, Tuple
 
+from common import open_fixture
+
 
 @dataclass
 class Coord:
@@ -157,7 +159,7 @@ class TestDay12(unittest.TestCase):
 
     def get_moons(self) -> Sequence[Moon]:
         moons = []
-        with open("./day12.input", "r") as fp:
+        with open_fixture("day12") as fp:
             while True:
                 s = fp.readline()
                 if not s:

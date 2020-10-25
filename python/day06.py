@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
+import unittest
 
 from dataclasses import dataclass
 from typing import Dict, List, Mapping, Optional, Sequence
 
-import unittest
+from common import open_fixture
 
 
 def parse_orbits(s: str) -> Dict[str, str]:
@@ -14,8 +15,8 @@ def parse_orbits(s: str) -> Dict[str, str]:
     return orbits
 
 
-def load_orbits(file: str) -> Dict[str, str]:
-    with open(file, "r") as fp:
+def load_orbits(name: str) -> Dict[str, str]:
+    with open_fixture(name) as fp:
         s = fp.read()
     return parse_orbits(s)
 
@@ -70,11 +71,11 @@ def count_transfers(graph: Dict[str, Sequence[str]], needle="SAN", start="YOU") 
 
 class TestDay6(unittest.TestCase):
     def test_part1(self):
-        orbits = load_orbits("./day06.input")
+        orbits = load_orbits("day06")
         self.assertEqual(count_orbits(orbits), 312697)
 
     def test_part2(self):
-        result = count_transfers(get_graph(load_orbits("./day06.input")))
+        result = count_transfers(get_graph(load_orbits("day06")))
         self.assertEqual(result, 466)
 
     def test_part2_example1(self):

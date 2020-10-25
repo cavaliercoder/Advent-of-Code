@@ -50,17 +50,12 @@ OPCODE_SIGNATURES: Dict[Opcode, Tuple[str, List[str]]] = {
 }
 
 
-def decode(s: str) -> Data:
-    return [int(opcode) for opcode in s.split(",")]
-
-
-def load(name: str) -> Data:
-    with open(name, "r") as fp:
-        return decode(fp.readline())
-
-
 TrapInput = Callable[[], int]
 TrapOutput = Callable[[int], None]
+
+
+def decode(s: str) -> Data:
+    return [int(opcode) for opcode in s.split(",")]
 
 
 class IntcodeVM:
@@ -343,13 +338,3 @@ class IntcodeVM:
         a = self.read(self.reg_pc + 1, self.param_modes[0])
         self.reg_rel_base += a
         self.reg_pc += 2
-
-
-def run(data: Data, stdin: Optional[Data] = None) -> Data:
-    vm = IntcodeVM(data=data, stdin=stdin)
-    vm.run()
-    return vm.stdout
-
-
-def load_and_run(file: str, stdin: Optional[Data] = None) -> Data:
-    return run(data=load(file), stdin=stdin)

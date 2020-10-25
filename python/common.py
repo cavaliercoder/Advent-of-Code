@@ -1,4 +1,21 @@
 import curses
+import os
+
+from typing import Any, IO
+
+
+def fixture(s: str) -> str:
+    """
+    Get the relative path to a puzzle input file.
+    """
+    return os.path.join("..", "inputs", s) + ".dat"
+
+
+def open_fixture(s: str) -> IO[Any]:
+    """
+    Open a puzzle input file.
+    """
+    return open(fixture(s), "r")
 
 
 class CursesScreen:

@@ -3,6 +3,8 @@ import unittest
 from math import ceil
 from typing import Any, Dict, Iterable, List, Set, Tuple
 
+from common import fixture
+
 
 class Component:
     """
@@ -329,9 +331,9 @@ class TestDay14(unittest.TestCase):
         self.assertEqual(compute_ore_consumed(compositions), 2210736)
 
     def test_part1(self):
-        compositions = CompositionTable.from_file("./day14.input")
+        compositions = CompositionTable.from_file(fixture("day14"))
         self.assertEqual(compute_ore_consumed(compositions), 365768)
 
     def test_part2(self):
-        compositions = CompositionTable.from_file("./day14.input")
+        compositions = CompositionTable.from_file(fixture("day14"))
         self.assertEqual(compute_fuel_yield(compositions, 1000000000000), 3756877)

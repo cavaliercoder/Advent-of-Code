@@ -6,8 +6,8 @@ from sys import stdout
 from time import sleep
 from typing import Any, Dict, Optional, List, Tuple, IO
 
-from lib.curses import CursesScreen
-from lib.intcode import IntcodeVM, load
+from common import CursesScreen, open_fixture
+from intcode import IntcodeVM, decode
 
 
 class Direction(Enum):
@@ -199,7 +199,9 @@ class Grid:
 
 class Droid:
     def __init__(self) -> None:
-        self.vm = IntcodeVM(load("./day15.input"))
+        with open_fixture("day15") as fp:
+            data = decode(fp.readline())
+        self.vm = IntcodeVM(data)
         self.grid = Grid()
         self.pos = Position(0, 0)
         self.oxygen_system_pos = Position(0, 0)
