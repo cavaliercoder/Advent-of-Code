@@ -211,8 +211,7 @@ class IntcodeVM:
         return new_size
 
     def read(self, addr: int, mode=AddressMode.IMMEDIATE) -> int:
-        if addr != AddressMode.IMMEDIATE:
-            addr = self.effective_addr(addr, mode)
+        addr = self.effective_addr(addr, mode)
         assert addr >= 0, f"Invalid address: {addr}"
         if addr >= len(self.data):
             v = 0
