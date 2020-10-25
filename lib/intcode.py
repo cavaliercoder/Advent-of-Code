@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
+import os
 
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
@@ -49,9 +50,6 @@ OPCODE_SIGNATURES: Dict[Opcode, Tuple[str, List[str]]] = {
 }
 
 
-logger = logging.getLogger(__name__)
-
-
 def decode(s: str) -> Data:
     return [int(opcode) for opcode in s.split(",")]
 
@@ -61,12 +59,17 @@ def load(name: str) -> Data:
         return decode(fp.readline())
 
 
+TrapInput = Callable[[], int]
+TrapOutput = Callable[[int], None]
+
+
 class IntcodeVM:
     def __init__(
         self,
         data: Optional[Data] = None,
         stdin: Optional[Data] = None,
-        trap_input: Optional[Callable[[], int]] = None,
+        trap_input: Optional[TrapInput] = None,
+        trap_output: Optional[TrapOutput] = None,
     ) -> None:
         self.handlers = {
             Opcode.ADD: self._op_add,
@@ -80,6 +83,7 @@ class IntcodeVM:
             Opcode.RELBASE: self._op_relbase,
         }
         self.trap_input = trap_input or self._trap_input
+        self.trap_output = trap_output or self._trap_output
         self.reset(data, stdin)
 
     def reset(self, data: Optional[Data], stdin: Optional[Data] = None) -> None:
@@ -130,7 +134,7 @@ class IntcodeVM:
         raw_str = ",".join(
             str(i) for i in self.data[self.reg_pc : self.reg_pc + len(params) + 1]
         )
-        logger.debug(f"[{self.reg_pc:04}] {opcode}({params_str})  # {raw_str}")
+        logging.debug(f"[{self.reg_pc:04}] {opcode}({params_str})  # {raw_str}")
 
     @property
     def halted(self) -> bool:
@@ -179,6 +183,8 @@ class IntcodeVM:
         """
         Pop a value from the VM's output buffer.
         """
+        if not self.stdout:
+            raise EOFError("No output")
         v = self.stdout[0]
         self.stdout = self.stdout[1:]
         return v
@@ -197,15 +203,16 @@ class IntcodeVM:
         if addr < old_size:
             return old_size
         new_size = 64
-        while new_size < addr:
+        while new_size <= addr:
             new_size *= 2
         if new_size > 4096:
             raise RuntimeError("Too much memory allocated")
+        assert new_size > addr
         new_data = [0] * new_size
         for i in range(old_size):
             new_data[i] = self.data[i]
         self.data = new_data
-        logger.debug(f"  grow_mem(addr={addr}) -> {new_size}")
+        logging.debug(f"  grow_mem(addr={addr}) -> {new_size}")
         return new_size
 
     def read(self, addr: int, mode=AddressMode.IMMEDIATE) -> int:
@@ -216,19 +223,29 @@ class IntcodeVM:
             v = 0
         else:
             v = self.data[addr]
-        logger.debug(f"  read(addr={addr}) -> {v}")
+        logging.debug(f"  read(addr={addr}) -> {v}")
         return v
 
     def write(self, addr: int, v: int) -> None:
         self.grow_mem(addr)
         self.data[addr] = v
-        logger.debug(f"  write(addr={addr}, v={v})")
+        logging.debug(f"  write(addr={addr}, v={v})")
 
     def _trap_input(self) -> int:
         """
-        Trap handler for reading input if the input buffer is empty.
+        Trap handler for input operation reads from the input buffer.
         """
-        return int(input(f"[{self.reg_pc:04}] Enter input: "))
+        if not self.stdin:
+            raise EOFError("No input")
+        v = self.stdin[0]
+        self.stdin = self.stdin[1:]
+        return v
+
+    def _trap_output(self, v: int) -> None:
+        """
+        Trap handler for output operation writes to the output buffer.
+        """
+        self.stdout.append(v)
 
     def _op_add(self) -> None:
         """
@@ -258,18 +275,14 @@ class IntcodeVM:
         self.reg_pc += 4
 
     def _op_input(self) -> None:
-        if self.stdin:
-            v = self.stdin[0]
-            self.stdin = self.stdin[1:]
-        else:
-            v = self.trap_input()
+        v = self.trap_input()
         addr = self.effective_addr(self.reg_pc + 1, self.param_modes[0])
         self.write(addr, v)
         self.reg_pc += 2
 
     def _op_output(self) -> None:
         v = self.read(self.reg_pc + 1, self.param_modes[0])
-        self.stdout.append(v)
+        self.trap_output(v)
         self.reg_pc += 2
 
     def _op_jump_if_true(self) -> None:
