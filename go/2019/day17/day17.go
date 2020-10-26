@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
-	"../common"
-	"../intcode"
+	"aoc/2019/common"
+	"aoc/2019/intcode"
 )
 
 var solutions = []string{
@@ -70,7 +70,7 @@ func main() {
 	for i := 0; ; i++ {
 		if i > 0 {
 			time.Sleep(time.Millisecond * 50)
-			fmt.Print("\033[42A")
+			fmt.Print("\033[42A") // move cursor up 42
 		}
 		printLine(r)
 		printGrid(r)
