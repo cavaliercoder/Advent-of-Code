@@ -136,13 +136,23 @@ func (c *Grid) Set(pos Pos, b byte) {
 	c.Data[i] = b
 }
 
-func (c *Grid) Find(b byte) int {
+func (c *Grid) FindOne(b byte) int {
 	for i, a := range c.Data {
 		if a == b {
 			return i
 		}
 	}
 	return -1
+}
+
+func (c *Grid) FindAll(b byte) []int {
+	v := make([]int, 0)
+	for i, a := range c.Data {
+		if a == b {
+			v = append(v, i)
+		}
+	}
+	return v
 }
 
 func (c *Grid) Print(w io.Writer) {

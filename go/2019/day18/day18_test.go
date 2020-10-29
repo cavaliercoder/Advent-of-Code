@@ -68,3 +68,49 @@ func TestPart1(t *testing.T) {
 	g, _ := OpenGrid(Fixture("day18"))
 	AssertInt(t, 5858, ShortestPath(g), "incorrect shortest path")
 }
+
+func TestPart2Example1(t *testing.T) {
+	example := `#######
+#a.#Cd#
+##@#@##
+#######
+##@#@##
+#cB#Ab#
+#######
+`
+	g, _ := ReadGrid(strings.NewReader(example))
+	AssertInt(t, 8, ShortestPath(g), "incorrect shortest path")
+}
+
+func TestPart2Example2(t *testing.T) {
+	example := `###############
+#d.ABC.#.....a#
+######@#@######
+###############
+######@#@######
+#b.....#.....c#
+###############
+`
+	g, _ := ReadGrid(strings.NewReader(example))
+	AssertInt(t, 24, ShortestPath(g), "incorrect shortest path")
+}
+
+func TestPart2Example3(t *testing.T) {
+	example := `#############
+#DcBa.#.GhKl#
+#.###@#@#I###
+#e#d#####j#k#
+###C#@#@###J#
+#fEbA.#.FgHi#
+#############
+`
+	g, _ := ReadGrid(strings.NewReader(example))
+	AssertInt(t, 32, ShortestPath(g), "incorrect shortest path")
+}
+
+func TestPart2(t *testing.T) {
+	g, _ := OpenGrid(Fixture("day18"))
+	Split(g)
+	// g.Print(os.Stdout)
+	AssertInt(t, 0, ShortestPath(g), "incorrect shortest path") // < 2224
+}

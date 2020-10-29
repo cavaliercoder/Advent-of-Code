@@ -121,62 +121,128 @@ func GetEdges(g *Grid, start Pos) map[Tile]Edge {
 
 // GetAllEdges returns all edges betweens between all keys, mapped by source and
 // destination key.
-func GetAllEdges(g *Grid, start Pos) map[Tile]map[Tile]Edge {
-	startTile := Tile(g.Get(start))
-	startPaths := GetEdges(g, start)
+//
+// Invariant: Start positions must not be reachable from eachother.
+func GetAllEdges(g *Grid, start ...Pos) map[Tile]map[Tile]Edge {
 	result := make(map[Tile]map[Tile]Edge)
-	result[startTile] = startPaths
-	for _, cell := range startPaths {
-		result[cell.Tile] = GetEdges(g, cell.Pos)
+
+	for _, pos := range start {
+		srcTile := Tile(g.Get(pos))
+		result[srcTile] = make(map[Tile]Edge)
+
+		// find all edges from start
+		edges := GetEdges(g, pos)
+		for dstTile, edge := range edges {
+			result[srcTile][dstTile] = edge
+		}
+		// find all other possible paths
+		for _, edge := range edges {
+			result[edge.Tile] = GetEdges(g, edge.Pos)
+		}
 	}
 	return result
+}
+
+// Split the grid into four subgrids at the start position.
+func Split(g *Grid) {
+	starts := FindStarts(g)
+	if len(starts) != 1 {
+		panic("grid must have only 1 '@' tile")
+	}
+	start := starts[0]
+	g.Set(start.Add(Pos{X: -1, Y: -1}), '@')
+	g.Set(start.Add(Pos{X: 0, Y: -1}), '#')
+	g.Set(start.Add(Pos{X: 1, Y: -1}), '@')
+	g.Set(start.Add(Pos{X: -1, Y: 0}), '#')
+	g.Set(start, '#')
+	g.Set(start.Add(Pos{X: 1, Y: 0}), '#')
+	g.Set(start.Add(Pos{X: -1, Y: 1}), '@')
+	g.Set(start.Add(Pos{X: 0, Y: 1}), '#')
+	g.Set(start.Add(Pos{X: 1, Y: 1}), '@')
+}
+
+// FindStarts returns the position of all '@' entry points in a grid.
+func FindStarts(g *Grid) []Pos {
+	v := make([]Pos, 0)
+	for i, a := range g.Data {
+		if a == '@' {
+			v = append(v, g.Pos(i))
+		}
+	}
+	return v
 }
 
 // ShortestPath returns the distance of shortest possible path to collect all
 // keys in the given grid.
 func ShortestPath(g *Grid) int {
 	type State struct {
-		Tile    Tile
+		Bots    [4]Tile
 		KeyMask KeyMask
 	}
-	pos := g.Pos(g.Find('@'))
-	paths := GetAllEdges(g, pos)
+
+	// rewrite start positions as bots 1..N
+	starts := FindStarts(g)
+	initState := State{}
+	for i := range starts {
+		g.Set(starts[i], '1'+byte(i))
+		initState.Bots[i] = Tile('1' + byte(i))
+	}
+	paths := GetAllEdges(g, starts...)
+	// fmt.Printf("%s\n", initState.Bots)
+
 	finalKeyMask := GetAllKeys(g)
-	finalDistance := 0
+	finalDistance := -1
 	distances := make(map[State]int)
 	queue := make([]State, 0, 256)
-	queue = append(queue, State{
-		Tile:    Tile('@'),
-		KeyMask: KeyMask(0),
-	})
+	queue = append(queue, initState)
 	for len(queue) > 0 {
 		srcState := queue[0]
 		queue = queue[1:]
-		for destKey, edge := range paths[srcState.Tile] {
-			if srcState.KeyMask.Contains(destKey) {
-				continue
+
+		// try move a bot
+		for i, srcTile := range srcState.Bots {
+			if srcTile == 0 {
+				continue // no such bot
 			}
-			if !srcState.KeyMask.Unlock(edge.Mask) {
-				continue
-			}
-			dstState := State{
-				Tile:    destKey,
-				KeyMask: srcState.KeyMask.Add(destKey),
-			}
-			distance := distances[srcState] + edge.Distance
-			if knownDistance, ok := distances[dstState]; ok {
-				if knownDistance < distance {
+			botMoved := false
+			for destTile, dstEdge := range paths[srcTile] {
+				// Have we already seen this key?
+				if srcState.KeyMask.Contains(destTile) {
 					continue
 				}
-			}
-			distances[dstState] = distance
-			if dstState.KeyMask == finalKeyMask {
-				if finalDistance == 0 || distance < finalDistance {
-					finalDistance = distance
+
+				// Is this key accessible?
+				if !srcState.KeyMask.Unlock(dstEdge.Mask) {
+					continue
 				}
-				continue
+
+				// compute next state
+				dstState := State{
+					Bots:    srcState.Bots,
+					KeyMask: srcState.KeyMask.Add(destTile),
+				}
+				dstState.Bots[i] = destTile
+
+				// compute distance to the next state
+				distance := distances[srcState] + dstEdge.Distance
+				if knownDistance, ok := distances[dstState]; ok {
+					if knownDistance < distance {
+						continue
+					}
+				}
+				distances[dstState] = distance
+				if dstState.KeyMask == finalKeyMask {
+					if finalDistance < 0 || distance < finalDistance {
+						finalDistance = distance
+					}
+					continue
+				}
+				queue = append(queue, dstState)
+				botMoved = true
 			}
-			queue = append(queue, dstState)
+			if botMoved {
+				break
+			}
 		}
 	}
 
