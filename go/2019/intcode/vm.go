@@ -89,8 +89,8 @@ func (c Instruction) Modes() [4]AddressMode {
 	return modes
 }
 
-// A VirtualMachine runs IntCode programs.
-type VirtualMachine interface {
+// A VM runs IntCode programs.
+type VM interface {
 	// Step will fetch, decode and execute a single instruction
 	Step() error
 
@@ -110,7 +110,7 @@ type VirtualMachine interface {
 	IOPop(block bool) (v int, err error)
 }
 
-type virtualMachine struct {
+type vm struct {
 	data        Data
 	handlers    map[Opcode]opcodeHandler
 	stdin       []int
@@ -122,9 +122,9 @@ type virtualMachine struct {
 	traceWriter io.Writer
 }
 
-// New returns a new VirtualMachine.
-func New(data Data) VirtualMachine {
-	v := &virtualMachine{
+// New returns a new VM.
+func New(data Data) VM {
+	v := &vm{
 		data:   data,
 		stdin:  make([]int, 0, 64),
 		stdout: make([]int, 0, 64),
@@ -148,14 +148,14 @@ func New(data Data) VirtualMachine {
 	return v
 }
 
-func (c *virtualMachine) tracef(format string, a ...interface{}) {
+func (c *vm) tracef(format string, a ...interface{}) {
 	if c.traceWriter == nil {
 		return
 	}
 	fmt.Fprintf(c.traceWriter, format, a...)
 }
 
-func (c *virtualMachine) traceStep() {
+func (c *vm) traceStep() {
 	if c.traceWriter == nil {
 		return
 	}
@@ -185,7 +185,7 @@ func (c *virtualMachine) traceStep() {
 	fmt.Fprintf(c.traceWriter, "\n")
 }
 
-func (c *virtualMachine) Step() error {
+func (c *vm) Step() error {
 	// fetch
 	v := Instruction(c.MemGet(c.regPC, AddressModeImmediate))
 
@@ -202,7 +202,7 @@ func (c *virtualMachine) Step() error {
 	return fn()
 }
 
-func (c *virtualMachine) Run() (err error) {
+func (c *vm) Run() (err error) {
 	for {
 		if err = c.Step(); err != nil {
 			if err == ErrHalted {
@@ -213,8 +213,15 @@ func (c *virtualMachine) Run() (err error) {
 	}
 }
 
-func (c *virtualMachine) MemGet(addr Address, mode AddressMode) (v int) {
+func (c *vm) PCSet(addr Address) {
+	c.regPC = addr
+}
+
+func (c *vm) MemGet(addr Address, mode AddressMode) (v int) {
 	eaddr := c.effectiveAddr(addr, mode)
+	if addr < 0 {
+		panic("invalid address")
+	}
 	if int(eaddr) >= len(c.data) {
 		v = 0
 	} else {
@@ -224,7 +231,7 @@ func (c *virtualMachine) MemGet(addr Address, mode AddressMode) (v int) {
 	return
 }
 
-func (c *virtualMachine) MemSet(addr Address, v int) {
+func (c *vm) MemSet(addr Address, v int) {
 	if int(addr) >= len(c.data) {
 		// grow mem
 		sz := 64
@@ -240,7 +247,7 @@ func (c *virtualMachine) MemSet(addr Address, v int) {
 	c.tracef("  memset(%04d, %d)\n", addr, v)
 }
 
-func (c *virtualMachine) IOPush(v int, block bool) (err error) {
+func (c *vm) IOPush(v int, block bool) (err error) {
 	c.tracef("  iopush(%d)\n", v)
 	c.stdin = append(c.stdin, v)
 	for block && len(c.stdin) > 0 {
@@ -252,7 +259,7 @@ func (c *virtualMachine) IOPush(v int, block bool) (err error) {
 	return nil
 }
 
-func (c *virtualMachine) IOPop(block bool) (v int, err error) {
+func (c *vm) IOPop(block bool) (v int, err error) {
 	for block && len(c.stdout) == 0 {
 		err = c.Step()
 		if err != nil {
@@ -270,7 +277,10 @@ func (c *virtualMachine) IOPop(block bool) (v int, err error) {
 	return
 }
 
-func (c *virtualMachine) effectiveAddr(addr Address, mode AddressMode) Address {
+func (c *vm) effectiveAddr(addr Address, mode AddressMode) Address {
+	if addr < 0 {
+		panic("bad address")
+	}
 	switch mode {
 	case AddressModeImmediate:
 		return addr
@@ -282,11 +292,11 @@ func (c *virtualMachine) effectiveAddr(addr Address, mode AddressMode) Address {
 	panic(mode)
 }
 
-func (c *virtualMachine) opIllegal() error {
+func (c *vm) opIllegal() error {
 	return ErrIllegal
 }
 
-func (c *virtualMachine) opAdd() error {
+func (c *vm) opAdd() error {
 	a := c.MemGet(c.regPC+1, c.modes[0])
 	b := c.MemGet(c.regPC+2, c.modes[1])
 	addr := c.effectiveAddr(c.regPC+3, c.modes[2])
@@ -296,7 +306,7 @@ func (c *virtualMachine) opAdd() error {
 	return nil
 }
 
-func (c *virtualMachine) opMultiply() error {
+func (c *vm) opMultiply() error {
 	a := c.MemGet(c.regPC+1, c.modes[0])
 	b := c.MemGet(c.regPC+2, c.modes[1])
 	addr := c.effectiveAddr(c.regPC+3, c.modes[2])
@@ -306,7 +316,7 @@ func (c *virtualMachine) opMultiply() error {
 	return nil
 }
 
-func (c *virtualMachine) opInput() error {
+func (c *vm) opInput() error {
 	addr := c.effectiveAddr(c.regPC+1, c.modes[0])
 	if len(c.stdin) == 0 {
 		return ErrNoInput
@@ -318,14 +328,14 @@ func (c *virtualMachine) opInput() error {
 	return nil
 }
 
-func (c *virtualMachine) opOutput() error {
+func (c *vm) opOutput() error {
 	v := c.MemGet(c.regPC+1, c.modes[0])
 	c.stdout = append(c.stdout, v)
 	c.regPC += 2
 	return nil
 }
 
-func (c *virtualMachine) opJumpIfTrue() error {
+func (c *vm) opJumpIfTrue() error {
 	v := c.MemGet(c.regPC+1, c.modes[0])
 	addr := Address(c.MemGet(c.regPC+2, c.modes[1]))
 	if v != 0 {
@@ -336,7 +346,7 @@ func (c *virtualMachine) opJumpIfTrue() error {
 	return nil
 }
 
-func (c *virtualMachine) opJumpIfNotTrue() error {
+func (c *vm) opJumpIfNotTrue() error {
 	v := c.MemGet(c.regPC+1, c.modes[0])
 	addr := Address(c.MemGet(c.regPC+2, c.modes[1]))
 	if v == 0 {
@@ -347,7 +357,7 @@ func (c *virtualMachine) opJumpIfNotTrue() error {
 	return nil
 }
 
-func (c *virtualMachine) opLessThan() error {
+func (c *vm) opLessThan() error {
 	a := c.MemGet(c.regPC+1, c.modes[0])
 	b := c.MemGet(c.regPC+2, c.modes[1])
 	addr := (c.effectiveAddr(c.regPC+3, c.modes[2]))
@@ -360,7 +370,7 @@ func (c *virtualMachine) opLessThan() error {
 	return nil
 }
 
-func (c *virtualMachine) opEqual() error {
+func (c *vm) opEqual() error {
 	a := c.MemGet(c.regPC+1, c.modes[0])
 	b := c.MemGet(c.regPC+2, c.modes[1])
 	addr := (c.effectiveAddr(c.regPC+3, c.modes[2]))
@@ -373,12 +383,12 @@ func (c *virtualMachine) opEqual() error {
 	return nil
 }
 
-func (c *virtualMachine) opRelBase() error {
+func (c *vm) opRelBase() error {
 	c.regRelBase += Address(c.MemGet(c.regPC+1, c.modes[0]))
 	c.regPC += 2
 	return nil
 }
 
-func (c *virtualMachine) opHalt() error {
+func (c *vm) opHalt() error {
 	return ErrHalted
 }

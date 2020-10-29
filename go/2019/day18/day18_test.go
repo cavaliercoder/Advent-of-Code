@@ -7,6 +7,7 @@ import (
 )
 
 func TestPart1Example1(t *testing.T) {
+	t.Parallel()
 	example := `#########
 #b.A.@.a#
 #########
@@ -16,6 +17,7 @@ func TestPart1Example1(t *testing.T) {
 }
 
 func TestPart1Example2(t *testing.T) {
+	t.Parallel()
 	example := `########################
 #f.D.E.e.C.b.A.@.a.B.c.#
 ######################.#
@@ -27,6 +29,7 @@ func TestPart1Example2(t *testing.T) {
 }
 
 func TestPart1Example3(t *testing.T) {
+	t.Parallel()
 	example := `########################
 #...............b.C.D.f#
 #.######################
@@ -38,6 +41,7 @@ func TestPart1Example3(t *testing.T) {
 }
 
 func TestPart1Example4(t *testing.T) {
+	t.Parallel()
 	example := `#################
 #i.G..c...e..H.p#
 ########.########
@@ -53,6 +57,7 @@ func TestPart1Example4(t *testing.T) {
 }
 
 func TestPart1Example5(t *testing.T) {
+	t.Parallel()
 	example := `########################
 #@..............ac.GI.b#
 ###d#e#f################
@@ -65,11 +70,13 @@ func TestPart1Example5(t *testing.T) {
 }
 
 func TestPart1(t *testing.T) {
+	t.Parallel()
 	g, _ := OpenGrid(Fixture("day18"))
 	AssertInt(t, 5858, ShortestPath(g), "incorrect shortest path")
 }
 
 func TestPart2Example1(t *testing.T) {
+	t.Parallel()
 	example := `#######
 #a.#Cd#
 ##@#@##
@@ -83,6 +90,7 @@ func TestPart2Example1(t *testing.T) {
 }
 
 func TestPart2Example2(t *testing.T) {
+	t.Parallel()
 	example := `###############
 #d.ABC.#.....a#
 ######@#@######
@@ -96,6 +104,7 @@ func TestPart2Example2(t *testing.T) {
 }
 
 func TestPart2Example3(t *testing.T) {
+	t.Parallel()
 	example := `#############
 #DcBa.#.GhKl#
 #.###@#@#I###
@@ -109,8 +118,8 @@ func TestPart2Example3(t *testing.T) {
 }
 
 func TestPart2(t *testing.T) {
+	t.Parallel()
 	g, _ := OpenGrid(Fixture("day18"))
 	Split(g)
-	// g.Print(os.Stdout)
-	AssertInt(t, 0, ShortestPath(g), "incorrect shortest path") // < 2224
+	AssertInt(t, 2144, ShortestPath(g), "incorrect shortest path")
 }

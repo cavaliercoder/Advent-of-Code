@@ -20,10 +20,10 @@ type BytesIO interface {
 }
 
 type bytesIO struct {
-	vm VirtualMachine
+	vm VM
 }
 
-func NewBytesIO(vm VirtualMachine) BytesIO {
+func NewBytesIO(vm VM) BytesIO {
 	return &bytesIO{vm: vm}
 }
 

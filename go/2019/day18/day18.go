@@ -172,14 +172,20 @@ func FindStarts(g *Grid) []Pos {
 	return v
 }
 
+// State is a vertex in our graph of keys and doors.
+type State struct {
+	KeyMask KeyMask
+	Bots    [4]Tile
+	Cost    int
+}
+
+func (p State) Hash() uint64 {
+	return uint64(p.Bots[0])<<56 | uint64(p.Bots[1])<<48 | uint64(p.Bots[2])<<40 | uint64(p.Bots[3])<<32 | uint64(p.KeyMask)
+}
+
 // ShortestPath returns the distance of shortest possible path to collect all
 // keys in the given grid.
 func ShortestPath(g *Grid) int {
-	type State struct {
-		Bots    [4]Tile
-		KeyMask KeyMask
-	}
-
 	// rewrite start positions as bots 1..N
 	starts := FindStarts(g)
 	initState := State{}
@@ -188,30 +194,26 @@ func ShortestPath(g *Grid) int {
 		initState.Bots[i] = Tile('1' + byte(i))
 	}
 	paths := GetAllEdges(g, starts...)
-	// fmt.Printf("%s\n", initState.Bots)
-
 	finalKeyMask := GetAllKeys(g)
 	finalDistance := -1
-	distances := make(map[State]int)
-	queue := make([]State, 0, 256)
-	queue = append(queue, initState)
-	for len(queue) > 0 {
-		srcState := queue[0]
-		queue = queue[1:]
+	queue := NewStateQueue()
+	queue.Enqueue(initState)
+	seen := make(map[uint64]State)
+	for queue.Len() > 0 {
+		srcState := queue.Dequeue()
 
 		// try move a bot
 		for i, srcTile := range srcState.Bots {
 			if srcTile == 0 {
 				continue // no such bot
 			}
-			botMoved := false
-			for destTile, dstEdge := range paths[srcTile] {
+			for dstTile, dstEdge := range paths[srcTile] {
 				// Have we already seen this key?
-				if srcState.KeyMask.Contains(destTile) {
+				if srcState.KeyMask.Contains(dstTile) {
 					continue
 				}
 
-				// Is this key accessible?
+				// Is this key behind a door?
 				if !srcState.KeyMask.Unlock(dstEdge.Mask) {
 					continue
 				}
@@ -219,29 +221,31 @@ func ShortestPath(g *Grid) int {
 				// compute next state
 				dstState := State{
 					Bots:    srcState.Bots,
-					KeyMask: srcState.KeyMask.Add(destTile),
+					KeyMask: srcState.KeyMask.Add(dstTile),
+					Cost:    srcState.Cost + dstEdge.Distance,
 				}
-				dstState.Bots[i] = destTile
+				dstState.Bots[i] = dstTile
 
-				// compute distance to the next state
-				distance := distances[srcState] + dstEdge.Distance
-				if knownDistance, ok := distances[dstState]; ok {
-					if knownDistance < distance {
+				// maintain min cost
+				if finalDistance > 0 && dstState.Cost > finalDistance {
+					continue
+				}
+				dstKey := dstState.Hash()
+				if seenState, ok := seen[dstKey]; ok {
+					if seenState.Cost < dstState.Cost {
 						continue
 					}
 				}
-				distances[dstState] = distance
+				seen[dstKey] = dstState
+
+				// track final distance
 				if dstState.KeyMask == finalKeyMask {
-					if finalDistance < 0 || distance < finalDistance {
-						finalDistance = distance
+					if finalDistance < 0 || dstState.Cost < finalDistance {
+						finalDistance = dstState.Cost
 					}
 					continue
 				}
-				queue = append(queue, dstState)
-				botMoved = true
-			}
-			if botMoved {
-				break
+				queue.Enqueue(dstState)
 			}
 		}
 	}
