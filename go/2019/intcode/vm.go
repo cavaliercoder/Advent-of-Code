@@ -213,10 +213,6 @@ func (c *vm) Run() (err error) {
 	}
 }
 
-func (c *vm) PCSet(addr Address) {
-	c.regPC = addr
-}
-
 func (c *vm) MemGet(addr Address, mode AddressMode) (v int) {
 	eaddr := c.effectiveAddr(addr, mode)
 	if addr < 0 {
