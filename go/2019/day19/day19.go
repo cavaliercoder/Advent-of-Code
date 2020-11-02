@@ -23,15 +23,7 @@ func NewDrone() (*Drone, error) {
 // Scan runs the Drone Intcode program and returns 1 if the given coordinate
 // is affected by the tractor beam.
 func (c *Drone) Scan(x, y int) (v int, err error) {
-	vm := intcode.New(c.data)
-	if err = vm.IOPush(x, true); err != nil {
-		return
-	}
-	if err = vm.IOPush(y, true); err != nil {
-		return
-	}
-	v, err = vm.IOPop(true)
-	return
+	return intcode.Run(c.data, x, y)
 }
 
 // GetBeamAngle returns the angle of the left and right boundaries of the beam

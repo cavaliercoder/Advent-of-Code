@@ -8,10 +8,8 @@ import (
 )
 
 var (
-	ErrIllegal  = errors.New("illegal")
-	ErrHalted   = errors.New("halted")
-	ErrNoInput  = errors.New("no input")
-	ErrNoOutput = errors.New("no output")
+	ErrIllegal = errors.New("illegal")
+	ErrHalted  = errors.New("halted")
 )
 
 // Opcode is the ID of a function that the VM can perform.
@@ -95,26 +93,21 @@ type VM interface {
 	Step() error
 
 	// Run until the program halts
-	Run() error
+	Run() (v int, err error)
 
 	// MemGet reads a value from VM memory
 	MemGet(addr Address, mode AddressMode) int
 
 	// MemSet writes a value to VM memory
 	MemSet(addr Address, v int)
-
-	// IOPush sends a value to the VM input buffer
-	IOPush(v int, block bool) (err error)
-
-	// IOPop reads a value from the VM output buffer
-	IOPop(block bool) (v int, err error)
 }
 
 type vm struct {
 	data        Data
 	handlers    map[Opcode]opcodeHandler
-	stdin       []int
-	stdout      []int
+	stdin       IntReader
+	stdout      IntWriter
+	exitCode    int
 	opcode      Opcode
 	modes       [4]AddressMode
 	regPC       Address
@@ -124,10 +117,15 @@ type vm struct {
 
 // New returns a new VM.
 func New(data Data) VM {
+	return NewWithIO(data, NewIntBuffer(nil), NewIntBuffer(nil))
+}
+
+// NewWithIO returns a new VM with the given IO devices.
+func NewWithIO(data Data, stdin IntReader, stdout IntWriter) VM {
 	v := &vm{
 		data:   data,
-		stdin:  make([]int, 0, 64),
-		stdout: make([]int, 0, 64),
+		stdin:  stdin,
+		stdout: stdout,
 	}
 	v.handlers = map[Opcode]opcodeHandler{
 		OpcodeIllegal:  v.opIllegal,
@@ -202,11 +200,11 @@ func (c *vm) Step() error {
 	return fn()
 }
 
-func (c *vm) Run() (err error) {
+func (c *vm) Run() (v int, err error) {
 	for {
 		if err = c.Step(); err != nil {
 			if err == ErrHalted {
-				return nil
+				return c.exitCode, nil
 			}
 			return
 		}
@@ -241,36 +239,6 @@ func (c *vm) MemSet(addr Address, v int) {
 
 	c.data[addr] = v
 	c.tracef("  memset(%04d, %d)\n", addr, v)
-}
-
-func (c *vm) IOPush(v int, block bool) (err error) {
-	c.tracef("  iopush(%d)\n", v)
-	c.stdin = append(c.stdin, v)
-	for block && len(c.stdin) > 0 {
-		err = c.Step()
-		if err != nil {
-			return
-		}
-	}
-	return nil
-}
-
-func (c *vm) IOPop(block bool) (v int, err error) {
-	for block && len(c.stdout) == 0 {
-		err = c.Step()
-		if err != nil {
-			c.tracef("  iopop() -> ERROR\n")
-			return
-		}
-	}
-	if len(c.stdout) == 0 {
-		c.tracef("  iopop() -> ERROR\n")
-		return 0, ErrNoOutput
-	}
-	v = c.stdout[0]
-	c.stdout = c.stdout[1:]
-	c.tracef("  iopop() -> %d\n", v)
-	return
 }
 
 func (c *vm) effectiveAddr(addr Address, mode AddressMode) Address {
@@ -314,11 +282,10 @@ func (c *vm) opMultiply() error {
 
 func (c *vm) opInput() error {
 	addr := c.effectiveAddr(c.regPC+1, c.modes[0])
-	if len(c.stdin) == 0 {
-		return ErrNoInput
+	v, err := c.stdin.ReadInt()
+	if err != nil {
+		return err
 	}
-	v := c.stdin[0]
-	c.stdin = c.stdin[1:]
 	c.MemSet(addr, v)
 	c.regPC += 2
 	return nil
@@ -326,7 +293,10 @@ func (c *vm) opInput() error {
 
 func (c *vm) opOutput() error {
 	v := c.MemGet(c.regPC+1, c.modes[0])
-	c.stdout = append(c.stdout, v)
+	c.exitCode = v
+	if err := c.stdout.WriteInt(v); err != nil {
+		return err
+	}
 	c.regPC += 2
 	return nil
 }
