@@ -7,4 +7,4 @@ all: check
 check: $(TESTS)
 
 %.test: %/*.go
-	cd $(basename $@)/; $(GO) test -v -count=1 -timeout 30s
+	cd $(basename $@)/; $(GO) test -v -count=1 -timeout 10s

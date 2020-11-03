@@ -137,7 +137,7 @@ func (c *intBuffer) Len() int {
 }
 
 func Run(data Data, args ...int) (v int, err error) {
-	vm := NewWithIO(data, NewIntBuffer(args), NewIntBuffer(nil))
+	vm := NewWithIO(data, NewIntBuffer(args), nil)
 	return vm.Run()
 }
 

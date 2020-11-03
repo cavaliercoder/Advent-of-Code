@@ -117,7 +117,7 @@ type vm struct {
 
 // New returns a new VM.
 func New(data Data) VM {
-	return NewWithIO(data, NewIntBuffer(nil), NewIntBuffer(nil))
+	return NewWithIO(data, nil, nil)
 }
 
 // NewWithIO returns a new VM with the given IO devices.
