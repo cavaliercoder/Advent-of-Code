@@ -1,9 +1,10 @@
-package main
+package day18
 
 import (
-	. "aoc/2019/common"
 	"strings"
 	"testing"
+
+	. "aoc"
 )
 
 func TestPart1Example1(t *testing.T) {

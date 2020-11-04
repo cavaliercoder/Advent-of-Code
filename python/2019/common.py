@@ -8,7 +8,7 @@ def fixture(s: str) -> str:
     """
     Get the relative path to a puzzle input file.
     """
-    return os.path.join("..", "inputs", s) + ".dat"
+    return os.path.join("..", "..", "inputs", "2019", s) + ".dat"
 
 
 def open_fixture(s: str) -> IO[Any]:

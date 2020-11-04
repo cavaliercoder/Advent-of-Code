@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	. "aoc/2019/common"
+	. "aoc"
 )
 
 func TestPart1Example1(t *testing.T) {

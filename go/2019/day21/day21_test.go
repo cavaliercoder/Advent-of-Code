@@ -1,9 +1,10 @@
-package main
+package day21
 
 import (
-	. "aoc/2019/common"
-	"aoc/2019/intcode"
 	"testing"
+
+	. "aoc"
+	"aoc/intcode"
 )
 
 func TestPart1(t *testing.T) {

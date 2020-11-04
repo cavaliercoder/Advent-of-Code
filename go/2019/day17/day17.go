@@ -3,12 +3,12 @@ package main
 import (
 	"log"
 
-	"aoc/2019/common"
-	"aoc/2019/intcode"
+	. "aoc"
+	"aoc/intcode"
 )
 
 func main() {
-	data, err := intcode.OpenData(common.Fixture("day17"))
+	data, err := intcode.OpenData(Fixture("day17"))
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -1,8 +1,9 @@
-package main
+package day20
 
 import (
-	. "aoc/2019/common"
 	"fmt"
+
+	. "aoc"
 )
 
 type PortalID [2]byte

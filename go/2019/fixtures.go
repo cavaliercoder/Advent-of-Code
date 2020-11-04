@@ -1,4 +1,4 @@
-package common
+package aoc
 
 import (
 	"os"
@@ -6,7 +6,7 @@ import (
 )
 
 func Fixture(name string) string {
-	return filepath.Join("..", "..", "..", "inputs", name+".dat")
+	return filepath.Join("..", "..", "..", "inputs", "2019", name+".dat")
 }
 
 func OpenFixture(name string) (*os.File, error) {

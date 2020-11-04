@@ -1,9 +1,10 @@
-package main
+package day19
 
 import (
-	. "aoc/2019/common"
-	"aoc/2019/intcode"
 	"math"
+
+	. "aoc"
+	"aoc/intcode"
 )
 
 type Drone struct {

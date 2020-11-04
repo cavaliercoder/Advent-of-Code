@@ -1,10 +1,10 @@
-package main
+package day18
 
 import (
 	"bytes"
 	"fmt"
 
-	. "aoc/2019/common"
+	. "aoc"
 )
 
 // KeyMask represents a set of keys or doors.

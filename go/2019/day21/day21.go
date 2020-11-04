@@ -1,8 +1,8 @@
-package main
+package day21
 
 import (
-	. "aoc/2019/common"
-	"aoc/2019/intcode"
+	. "aoc"
+	"aoc/intcode"
 )
 
 func main() {
