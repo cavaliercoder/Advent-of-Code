@@ -3,6 +3,7 @@ package aoc
 import (
 	"bufio"
 	"bytes"
+	"crypto/sha256"
 	"fmt"
 	"io"
 	"os"
@@ -54,6 +55,14 @@ type Grid struct {
 	Data   []byte
 	Width  int
 	Height int
+}
+
+func NewGrid(width, height int) *Grid {
+	return &Grid{
+		Data:   make([]byte, width*height),
+		Width:  width,
+		Height: height,
+	}
 }
 
 func ReadGrid(r io.Reader) (*Grid, error) {
@@ -136,6 +145,15 @@ func (c *Grid) Set(pos Pos, b byte) {
 	c.Data[i] = b
 }
 
+func (c *Grid) Count(b byte) (n int) {
+	for i := 0; i < len(c.Data); i++ {
+		if c.Data[i] == b {
+			n++
+		}
+	}
+	return
+}
+
 func (c *Grid) FindOne(b byte) int {
 	for i, a := range c.Data {
 		if a == b {
@@ -155,6 +173,11 @@ func (c *Grid) FindAll(b byte) []int {
 	return v
 }
 
+func (c *Grid) Line(y int) []byte {
+	i := y * c.Width
+	return c.Data[i : i+c.Width]
+}
+
 func (c *Grid) Print(w io.Writer) {
 	newline := []byte{'\n'}
 	for y := 0; y < c.Height; y++ {
@@ -162,4 +185,9 @@ func (c *Grid) Print(w io.Writer) {
 		w.Write(c.Data[i : i+c.Width])
 		w.Write(newline)
 	}
+}
+
+func (c *Grid) SHA256() string {
+	sum := sha256.Sum256(c.Data)
+	return fmt.Sprintf("%x", sum)
 }
