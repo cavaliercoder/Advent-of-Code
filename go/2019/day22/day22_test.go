@@ -1,7 +1,6 @@
 package day22
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -69,99 +68,13 @@ func TestPart1(t *testing.T) {
 	AssertInt(t, 7860, d.IndexOf(2019), "wrong index of card 2019")
 }
 
-func TestUndoDealIntoNewDeck(t *testing.T) {
-	n := 1024
-	f := UndoDealIntoNewDeck()
-	for i := 0; i < n; i++ {
-		d := NewDeck(n)
-		d.DealIntoNewStack()
-		sd := NewSuperDeck(int64(n), int64(i))
-		f.Do(sd)
-		AssertInt(t, int(d.Get(i)), int(sd.Index()), "bad rewind at index %d", i)
+func TestPart2(t *testing.T) {
+	f, err := OpenFixture("day22")
+	if err != nil {
+		t.Fatal(err)
 	}
-}
-
-func TestUndoCut(t *testing.T) {
-	n := 1024
-	for cut := -n + 1; cut < n; cut++ { // TODO: negatives!
-		d := NewDeck(n)
-		d.Cut(cut)
-		for i := 0; i < n; i++ {
-			sd := NewSuperDeck(int64(n), int64(i))
-			UndoCut(int64(cut)).Do(sd)
-			AssertInt(t, int(d.Get(i)), int(sd.Index()), "bad UndoCut(%d) @ %d", cut, i)
-		}
-	}
-}
-
-func TestUndoDealWithIncrement(t *testing.T) {
-	n := 271 // must be prime
-	for incr := 2; incr < n; incr++ {
-		t.Run(fmt.Sprintf("WithIncrement%000d", incr), func(t *testing.T) {
-			d := NewDeck(n)
-			d.DealWithIncrement(incr)
-			for i := 0; i < n; i++ {
-				t.Run(fmt.Sprintf("TrackingIndex%00d", i), func(t *testing.T) {
-					sd := NewSuperDeck(int64(n), int64(i))
-					UndoDealWithIncrement(int64(incr)).Do(sd)
-					AssertInt(t, int(d.Get(i)), int(sd.Index()), "bad card in %v", d)
-				})
-			}
-		})
-	}
-}
-
-func TestUndoShuffle(t *testing.T) {
-	n := 10007
-
-	// run standard deck shuffle once
-	d := NewDeck(10007)
-	func() {
-		f, err := OpenFixture("day22")
-		if err != nil {
-			t.Fatal(err)
-		}
-		defer f.Close()
-		d.Run(f)
-	}()
-
-	// load super shuffles
-	var shuffles []SuperDeckShuffle
-	func() {
-		f, err := OpenFixture("day22")
-		if err != nil {
-			t.Fatal(err)
-		}
-		defer f.Close()
-		shuffles = ReadSuperDeckShuffles(f)
-	}()
-
-	// test result for each i in n
-	for i := 0; i < n; i++ {
-		t.Run(fmt.Sprintf("WithIndex%0000d", i), func(t *testing.T) {
-			sd := NewSuperDeck(int64(n), int64(i))
-			v := sd.UndoShuffle(shuffles...)
-			AssertInt(t, int(d.Get(i)), int(v), "bad card in %v", d)
-		})
-	}
-}
-
-func TestFindLoops(t *testing.T) {
-	// load super shuffles
-	var shuffles []SuperDeckShuffle
-	func() {
-		f, err := OpenFixture("day22")
-		if err != nil {
-			t.Fatal(err)
-		}
-		defer f.Close()
-		shuffles = ReadSuperDeckShuffles(f)
-	}()
-
-	var v int64
-	sd := NewSuperDeck(int64(119315717514047), int64(2020))
-	for i := int64(0); i < 101741582076661; i++ {
-		v = sd.UndoShuffle(shuffles...)
-	}
-	t.Fatal(v)
+	defer f.Close()
+	d := ReadSuperDeck(f, 119315717514047)
+	d.Shuffle(101741582076661)
+	AssertInt(t, 61256063148970, int(d.Get(2020)), "bad card")
 }

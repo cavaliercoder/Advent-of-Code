@@ -5,6 +5,13 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"math/big"
+)
+
+var (
+	Zero = big.NewInt(0)
+	One  = big.NewInt(1)
+	Two  = big.NewInt(2)
 )
 
 type Card int64
@@ -106,93 +113,125 @@ func (d *Deck) Run(r io.Reader) {
 	}
 }
 
+// SuperDeck implements arbitrarily large deck shuffles using linear
+// polynomials/group theory. I know very little about these so I cargo-culted
+// the following impressive solution:
+// https://github.com/metalim/metalim.adventofcode.2019.python/blob/master/22_cards_shuffle.ipynb
 type SuperDeck struct {
-	size       int64
-	trackIndex int64
+	L, a, b *big.Int
 }
 
-func NewSuperDeck(size int64, trackIndex int64) *SuperDeck {
-	return &SuperDeck{
-		size:       size,
-		trackIndex: trackIndex,
-	}
-}
+func ReadSuperDeck(r io.Reader, size int64) *SuperDeck {
+	var n int64
+	var tokens int
+	L, a, b := big.NewInt(size), big.NewInt(1), big.NewInt(0)
+	rules := make([]string, 0, 64)
 
-func (d *SuperDeck) Index() int64 {
-	return d.trackIndex
-}
-
-func (d *SuperDeck) UndoShuffle(shuffles ...SuperDeckShuffle) int64 {
-	for i := 0; i < len(shuffles); i++ {
-		shuffles[len(shuffles)-1-i].Do(d)
-	}
-	return d.Index()
-}
-
-type SuperDeckShuffle interface {
-	Do(d *SuperDeck)
-}
-
-func ReadSuperDeckShuffles(r io.Reader) []SuperDeckShuffle {
-	shuffles := make([]SuperDeckShuffle, 0, 64)
-	var v, n int
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
-		s := scanner.Text()
+		rules = append(rules, scanner.Text())
+	}
+	for i := 0; i < len(rules); i++ {
+		s := rules[len(rules)-1-i]
 
 		// deal into new stack
 		if s == "deal into new stack" {
-			shuffles = append(shuffles, UndoDealIntoNewDeck())
+			// a = -a
+			a.Neg(a)
+
+			// b = L - b - 1
+			b.Sub(L, b)
+			b.Sub(b, One)
 			continue
 		}
 
 		// cut
-		if n, _ = fmt.Sscanf(s, "cut %d", &v); n == 1 {
-			shuffles = append(shuffles, UndoCut(int64(v)))
+		if tokens, _ = fmt.Sscanf(s, "cut %d", &n); tokens == 1 {
+			// b = (b + n) % size
+			b.Add(b, big.NewInt(n))
+			b.Mod(b, L)
 			continue
 		}
 
 		// deal with increment
-		if n, _ = fmt.Sscanf(s, "deal with increment %d", &v); n == 1 {
-			shuffles = append(shuffles, UndoDealWithIncrement(int64(v)))
+		if tokens, _ = fmt.Sscanf(s, "deal with increment %d", &n); tokens == 1 {
+			// z = n^(L-2) % L
+			var z, exp big.Int
+			exp.Sub(L, Two)
+			z.Exp(big.NewInt(n), &exp, L)
+
+			// a = a * z % L
+			a.Mul(a, &z)
+			a.Mod(a, L)
+
+			// b = b * z % L
+			b.Mul(b, &z)
+			b.Mod(b, L)
 			continue
 		}
 
+		// unsupported
 		panic(s)
 	}
-	return shuffles
+	return &SuperDeck{L: L, a: a, b: b}
 }
 
-type SuperDeckShuffleFunc func(*SuperDeck)
+func polyPow(a, b, n, L *big.Int) {
+	if n.Cmp(Zero) == 0 {
+		a.Set(One)
+		b.Set(Zero)
+		return
+	}
 
-func (f SuperDeckShuffleFunc) Do(d *SuperDeck) {
-	f(d)
+	// if n%2 == 0
+	var nMod2 big.Int
+	nMod2.Mod(n, Two)
+	if nMod2.Cmp(Zero) == 0 {
+		// b = (a*b + b) % L
+		var x big.Int
+		x.Mul(a, b)
+		x.Add(&x, b)
+		x.Mod(&x, L)
+		b.Set(&x)
+
+		// a = a^2 % L
+		a.Exp(a, Two, L)
+
+		// n = n / 2
+		n.Div(n, Two)
+		polyPow(a, b, n, L)
+		return
+	}
+
+	// c, d = polyPow(a, b, n-1, L)
+	var c, d, nn big.Int
+	c.Set(a)
+	d.Set(b)
+	nn.Sub(n, One)
+	polyPow(&c, &d, &nn, L)
+
+	// a = a*c % L
+	c.Mul(&c, a)
+	c.Mod(&c, L)
+
+	// b = (a*d + b) % L
+	d.Mul(&d, a)
+	d.Add(&d, b)
+	d.Mod(&d, L)
+
+	a.Set(&c)
+	b.Set(&d)
 }
 
-func UndoDealIntoNewDeck() SuperDeckShuffle {
-	return SuperDeckShuffleFunc(func(d *SuperDeck) {
-		d.trackIndex = d.size - 1 - d.trackIndex
-	})
+func (c *SuperDeck) Shuffle(n int64) {
+	polyPow(c.a, c.b, big.NewInt(n), c.L)
 }
 
-func UndoCut(n int64) SuperDeckShuffle {
-	return SuperDeckShuffleFunc(func(d *SuperDeck) {
-		if n < 0 {
-			n = d.size + n
-		}
-		d.trackIndex = (n + d.trackIndex) % d.size
-	})
-}
-
-func UndoDealWithIncrement(n int64) SuperDeckShuffle {
-	return SuperDeckShuffleFunc(func(d *SuperDeck) {
-		A := make([]int64, n)
-		var v, j int64
-		for i := int64(1); i < n; i++ {
-			v += (d.size-j)/n + 1
-			j = (v * n) % d.size
-			A[j] = v
-		}
-		d.trackIndex = A[d.trackIndex%n] + d.trackIndex/n
-	})
+func (c *SuperDeck) Get(i int64) int64 {
+	// x = (i*a + b) % L
+	v := big.NewInt(i)
+	v.Mul(v, c.a)
+	v.Add(v, c.b)
+	v.Mod(v, c.L)
+	return v.Int64()
 }
