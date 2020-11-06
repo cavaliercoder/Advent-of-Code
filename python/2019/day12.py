@@ -114,6 +114,20 @@ def step(moons: Sequence[Moon]) -> None:
         moon.position = moon.position + moon.velocity
 
 
+def lcm(a, b: int) -> int:
+    if a < b:
+        a, b = b, a
+    i = 1
+    ceiling = a * b
+    while True:
+        v = a * i
+        i += 1
+        if v >= ceiling:
+            return ceiling
+        if v % b == 0:
+            return v
+
+
 class TestDay12(unittest.TestCase):
     def assertMoons(self, actual: Sequence[Moon], expect: Sequence[Moon]):
         for i in range(len(expect)):
@@ -173,3 +187,47 @@ class TestDay12(unittest.TestCase):
             step(moons)
         energy = sum([moon.energy() for moon in moons])
         self.assertEqual(energy, 12351)
+
+    def test_part2(self):
+        def hashState(moons: Sequence[Moon]) -> Tuple[str, str, str]:
+            """
+            Hash the aggregate X, Y, Z values of all moons.
+            """
+            x, y, z = sha256(), sha256(), sha256()
+            for moon in moons:
+                x.update(
+                    (moon.position.x + moon.velocity.x).to_bytes(
+                        4, byteorder="big", signed=True
+                    )
+                )
+                y.update(
+                    (moon.position.y + moon.velocity.y).to_bytes(
+                        4, byteorder="big", signed=True
+                    )
+                )
+                z.update(
+                    (moon.position.z + moon.velocity.z).to_bytes(
+                        4, byteorder="big", signed=True
+                    )
+                )
+            return (
+                x.digest()[:4].hex(),
+                y.digest()[:4].hex(),
+                z.digest()[:4].hex(),
+            )
+
+        moons = self.get_moons()
+        init_states = hashState(moons)
+        loop_indexes = [0, 0, 0]
+        step_count = 0
+        while not all(loop_indexes):
+            step(moons)
+            step_count += 1
+            step_states = hashState(moons)
+            for i in range(len(loop_indexes)):
+                if loop_indexes[i]:
+                    continue  # already found
+                if step_states[i] == init_states[i]:
+                    loop_indexes[i] = step_count
+        answer = lcm(loop_indexes[0], lcm(loop_indexes[1], loop_indexes[2]))
+        self.assertEqual(answer, 380635029877596)
