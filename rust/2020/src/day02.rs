@@ -6,18 +6,24 @@ mod tests {
   use std::io::{BufRead, BufReader};
   use std::str::FromStr;
 
+  /// CharPolicy describes the minimum and maximum number of times a character
+  /// must appear in a password.
   struct CharPolicy {
     c: char,
     min: i32,
     max: i32,
   }
 
+  /// PasswordEntry describes a password in the database and the policy that
+  /// was enforced at the time it was created.
   struct PasswordEntry {
     password: String,
     policy: CharPolicy,
   }
 
   impl PasswordEntry {
+    /// Check the password against its policy using the rules from the old sled
+    /// rental place down the street.
     fn is_valid(&self) -> bool {
       let mut n = 0;
       for c in self.password.chars() {
@@ -28,6 +34,8 @@ mod tests {
       n >= self.policy.min && n <= self.policy.max
     }
 
+    /// Check the password against its policy using the correct rules from the
+    /// Official Toboggan Corporate Authentication System.
     fn is_valid2(&self) -> bool {
       let mut n = 0;
       let c = self.password.chars().nth(self.policy.min as usize).unwrap();
