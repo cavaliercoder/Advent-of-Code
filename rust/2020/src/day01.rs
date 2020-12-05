@@ -3,14 +3,14 @@ mod tests {
     use std::collections::HashSet;
     use std::iter::FromIterator;
 
-    use crate::parse_fixture;
+    use crate::fixtures;
 
     const SUM: i32 = 2020;
 
     #[test]
     fn test_part1() {
         let expect: i32 = 299299;
-        let report: Vec<i32> = parse_fixture("day01").unwrap();
+        let report: Vec<i32> = fixtures::parse("day01").unwrap();
         let report: HashSet<&i32> = HashSet::from_iter(report.iter());
         for &n in report.iter() {
             let m = SUM - n;
@@ -26,7 +26,7 @@ mod tests {
     fn test_part2() {
         // TODO: Can we do this in better than O(n³)?
         let expect: i32 = 287730716;
-        let report: Vec<i32> = parse_fixture("day01").unwrap();
+        let report: Vec<i32> = fixtures::parse("day01").unwrap();
         for i in 0..report.len() - 1 {
             for j in 1..report.len() {
                 let i = report[i];

@@ -3,7 +3,8 @@ mod tests {
   use std::fmt;
   use std::str;
 
-  use crate::{parse_fixture, ToDoError};
+  use crate::fixtures;
+  use crate::ToDoError;
 
   /// CharPolicy describes the minimum and maximum number of times a character
   /// must appear in a password.
@@ -86,7 +87,7 @@ mod tests {
 
   #[test]
   fn test_part1() {
-    let db: Vec<Password> = parse_fixture("day02").unwrap();
+    let db: Vec<Password> = fixtures::parse("day02").unwrap();
     let mut valid = 0;
     for item in db.iter() {
       if item.is_valid() {
@@ -98,7 +99,7 @@ mod tests {
 
   #[test]
   fn test_part2() {
-    let db: Vec<Password> = parse_fixture("day02").unwrap();
+    let db: Vec<Password> = fixtures::parse("day02").unwrap();
     let mut valid = 0;
     for item in db.iter() {
       if item.is_valid2() {

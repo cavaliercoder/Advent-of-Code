@@ -1,8 +1,10 @@
 use std::fmt;
 use std::fmt::Write;
+use std::io;
 use std::ops::{Add, Index, IndexMut, Sub};
 
-use crate::{read_fixture, ToDoError};
+use crate::fixtures;
+use crate::ToDoError;
 
 #[derive(Copy, Clone)]
 pub struct Point {
@@ -58,7 +60,7 @@ pub struct Grid {
 }
 
 impl Grid {
-  pub fn from_vec(buf: Vec<u8>) -> Result<Self, ToDoError> {
+  pub fn from_vec(buf: Vec<u8>) -> io::Result<Self> {
     let mut grid = Self {
       data: Vec::new(),
       width: 0,
@@ -79,8 +81,8 @@ impl Grid {
     Ok(grid)
   }
 
-  pub fn from_fixture(name: &str) -> Result<Self, ToDoError> {
-    Self::from_vec(read_fixture(name)?)
+  pub fn from_fixture(name: &str) -> io::Result<Self> {
+    Self::from_vec(fixtures::read(name)?)
   }
 
   fn index_of(&self, p: Point) -> Result<usize, ToDoError> {
