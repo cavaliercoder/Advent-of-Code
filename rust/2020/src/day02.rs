@@ -3,7 +3,7 @@ mod tests {
   use std::fmt;
   use std::str;
 
-  use crate::{fixture, AOCError};
+  use crate::{parse_fixture, ToDoError};
 
   /// CharPolicy describes the minimum and maximum number of times a character
   /// must appear in a password.
@@ -56,23 +56,23 @@ mod tests {
 
 
   impl str::FromStr for Password {
-    type Err = AOCError;
+    type Err = ToDoError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
       // format: `<min>-<max> <char>: <password>`
 
       // read policy min
-      let i = s.find('-').ok_or(AOCError{})?;
-      let min: usize = s[0..i].parse().map_err(|_| AOCError{})?;
+      let i = s.find('-').ok_or(ToDoError{})?;
+      let min: usize = s[0..i].parse().map_err(|_| ToDoError{})?;
       let s = &s[i + 1..];
 
       // read policy max
-      let i = s.find(' ').ok_or(AOCError{})?;
-      let max: usize = s[..i].parse().map_err(|_| AOCError{})?;
+      let i = s.find(' ').ok_or(ToDoError{})?;
+      let max: usize = s[..i].parse().map_err(|_| ToDoError{})?;
       let s = &s[i + 1..];
 
       // read policy char
-      let c = s.chars().next().ok_or(AOCError{})? as u8;
+      let c = s.chars().next().ok_or(ToDoError{})? as u8;
 
       // read password
       let password = &s[2..];
@@ -86,7 +86,7 @@ mod tests {
 
   #[test]
   fn test_part1() {
-    let db: Vec<Password> = fixture("day02").unwrap();
+    let db: Vec<Password> = parse_fixture("day02").unwrap();
     let mut valid = 0;
     for item in db.iter() {
       if item.is_valid() {
@@ -98,7 +98,7 @@ mod tests {
 
   #[test]
   fn test_part2() {
-    let db: Vec<Password> = fixture("day02").unwrap();
+    let db: Vec<Password> = parse_fixture("day02").unwrap();
     let mut valid = 0;
     for item in db.iter() {
       if item.is_valid2() {
