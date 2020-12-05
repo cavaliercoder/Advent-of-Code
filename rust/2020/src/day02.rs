@@ -1,33 +1,32 @@
 #[cfg(test)]
 mod tests {
-  use std::error::Error;
   use std::fmt;
-  use std::fs::File;
-  use std::io::{BufRead, BufReader};
-  use std::str::FromStr;
+  use std::str;
+
+  use crate::{fixture, AOCError};
 
   /// CharPolicy describes the minimum and maximum number of times a character
   /// must appear in a password.
   struct CharPolicy {
-    c: char,
-    min: i32,
-    max: i32,
+    c: u8,
+    min: usize,
+    max: usize,
   }
 
-  /// PasswordEntry describes a password in the database and the policy that
+  /// Password describes a password in the database and the policy that
   /// was enforced at the time it was created.
-  struct PasswordEntry {
-    password: String,
+  struct Password {
+    password: Vec<u8>,
     policy: CharPolicy,
   }
 
-  impl PasswordEntry {
+  impl Password {
     /// Check the password against its policy using the rules from the old sled
     /// rental place down the street.
     fn is_valid(&self) -> bool {
       let mut n = 0;
-      for c in self.password.chars() {
-        if c == self.policy.c {
+      for c in self.password.iter() {
+        if *c == self.policy.c {
           n += 1;
         }
       }
@@ -37,74 +36,59 @@ mod tests {
     /// Check the password against its policy using the correct rules from the
     /// Official Toboggan Corporate Authentication System.
     fn is_valid2(&self) -> bool {
-      let mut n = 0;
-      let c = self.password.chars().nth(self.policy.min as usize).unwrap();
-      if c == self.policy.c {
-        n += 1;
-      }
-      let c = self.password.chars().nth(self.policy.max as usize).unwrap();
-      if c == self.policy.c {
-        n += 1;
-      }
-      n == 1
+      (self.password[self.policy.min] == self.policy.c)
+        ^ (self.password[self.policy.max] == self.policy.c)
     }
   }
 
-  impl fmt::Display for PasswordEntry {
+  impl fmt::Display for Password {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
       write!(
         f,
         "{}-{} {}: {}",
-        self.policy.min, self.policy.max, self.policy.c, self.password
+        self.policy.min,
+        self.policy.max,
+        self.policy.c,
+        str::from_utf8(&self.password).unwrap(),
       )
     }
   }
 
-  impl FromStr for PasswordEntry {
-    type Err = Box<dyn Error>;
+
+  impl str::FromStr for Password {
+    type Err = AOCError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
       // format: `<min>-<max> <char>: <password>`
-      let parser_error = "parser error";
 
       // read policy min
-      let i = s.find('-').ok_or(parser_error)?;
-      let min: i32 = s[0..i].parse()?;
+      let i = s.find('-').ok_or(AOCError{})?;
+      let min: usize = s[0..i].parse().map_err(|_| AOCError{})?;
       let s = &s[i + 1..];
 
       // read policy max
-      let i = s.find(' ').ok_or(parser_error)?;
-      let max: i32 = s[..i].parse()?;
+      let i = s.find(' ').ok_or(AOCError{})?;
+      let max: usize = s[..i].parse().map_err(|_| AOCError{})?;
       let s = &s[i + 1..];
 
       // read policy char
-      let c = s.chars().next().ok_or(parser_error)?;
+      let c = s.chars().next().ok_or(AOCError{})? as u8;
 
       // read password
       let password = &s[2..];
 
-      Ok(PasswordEntry {
-        password: String::from(password),
+      Ok(Self {
+        password: password.as_bytes().to_vec(),
         policy: CharPolicy { c, min, max },
       })
     }
   }
 
-  fn get_password_db() -> Vec<PasswordEntry> {
-    let fixture = "../../inputs/2020/day02.dat";
-    let reader = BufReader::new(File::open(fixture).unwrap());
-    let mut report: Vec<PasswordEntry> = Vec::new();
-    for line in reader.lines() {
-      report.push(line.unwrap().parse().unwrap());
-    }
-    report
-  }
-
   #[test]
   fn test_part1() {
-    let report = get_password_db();
+    let db: Vec<Password> = fixture("day02").unwrap();
     let mut valid = 0;
-    for item in report.iter() {
+    for item in db.iter() {
       if item.is_valid() {
         valid += 1;
       }
@@ -114,9 +98,9 @@ mod tests {
 
   #[test]
   fn test_part2() {
-    let report = get_password_db();
+    let db: Vec<Password> = fixture("day02").unwrap();
     let mut valid = 0;
-    for item in report.iter() {
+    for item in db.iter() {
       if item.is_valid2() {
         valid += 1;
       }

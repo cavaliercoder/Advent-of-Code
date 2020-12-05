@@ -1,26 +1,16 @@
 #[cfg(test)]
 mod tests {
     use std::collections::HashSet;
-    use std::fs::File;
-    use std::io::{BufRead, BufReader};
     use std::iter::FromIterator;
 
-    const SUM: i32 = 2020;
+    use crate::fixture;
 
-    fn get_expense_report() -> Vec<i32> {
-        let fixture = "../../inputs/2020/day01.dat";
-        let reader = BufReader::new(File::open(fixture).unwrap());
-        let mut report: Vec<i32> = Vec::new();
-        for line in reader.lines() {
-            report.push(line.unwrap().parse().unwrap());
-        }
-        report
-    }
+    const SUM: i32 = 2020;
 
     #[test]
     fn test_part1() {
         let expect: i32 = 299299;
-        let report = get_expense_report();
+        let report: Vec<i32> = fixture("day01").unwrap();
         let report: HashSet<&i32> = HashSet::from_iter(report.iter());
         for &n in report.iter() {
             let m = SUM - n;
@@ -34,9 +24,9 @@ mod tests {
 
     #[test]
     fn test_part2() {
-        // TODO: Can we do this in better than O(n²)?
+        // TODO: Can we do this in better than O(n³)?
         let expect: i32 = 287730716;
-        let report = get_expense_report();
+        let report: Vec<i32> = fixture("day01").unwrap();
         for i in 0..report.len() - 1 {
             for j in 1..report.len() {
                 let i = report[i];
