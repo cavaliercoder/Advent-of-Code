@@ -1,4 +1,5 @@
 use std::fmt;
+use std::io;
 
 #[derive(Debug)]
 pub struct ToDoError;
@@ -8,6 +9,13 @@ impl fmt::Display for ToDoError {
     "You have doomed Christmas".fmt(f)
   }
 }
+
+impl From<io::Error> for ToDoError {
+    fn from(_: io::Error) -> Self {
+        ToDoError{}
+    }
+}
+
 
 mod fixtures;
 mod grid;
