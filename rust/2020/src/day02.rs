@@ -55,7 +55,6 @@ mod tests {
     }
   }
 
-
   impl str::FromStr for Password {
     type Err = ToDoError;
 
@@ -63,17 +62,17 @@ mod tests {
       // format: `<min>-<max> <char>: <password>`
 
       // read policy min
-      let i = s.find('-').ok_or(ToDoError{})?;
-      let min: usize = s[0..i].parse().map_err(|_| ToDoError{})?;
+      let i = s.find('-').ok_or(ToDoError {})?;
+      let min: usize = s[0..i].parse().map_err(|_| ToDoError {})?;
       let s = &s[i + 1..];
 
       // read policy max
-      let i = s.find(' ').ok_or(ToDoError{})?;
-      let max: usize = s[..i].parse().map_err(|_| ToDoError{})?;
+      let i = s.find(' ').ok_or(ToDoError {})?;
+      let max: usize = s[..i].parse().map_err(|_| ToDoError {})?;
       let s = &s[i + 1..];
 
       // read policy char
-      let c = s.chars().next().ok_or(ToDoError{})? as u8;
+      let c = s.chars().next().ok_or(ToDoError {})? as u8;
 
       // read password
       let password = &s[2..];
