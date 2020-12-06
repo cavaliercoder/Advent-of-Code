@@ -73,10 +73,10 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        let passes: Vec<String> = fixtures::parse("day05").unwrap();
+        let passes = fixtures::Fixture::open("day05");
         let mut max_pass = 0;
-        for pass in passes.iter() {
-            let pass_id = get_seat_id(pass);
+        for pass in passes {
+            let pass_id = get_seat_id(&pass);
             if pass_id > max_pass {
                 max_pass = pass_id;
             }
@@ -86,12 +86,12 @@ mod tests {
 
     #[test]
     fn test_part2() {
-        let passes: Vec<String> = fixtures::parse("day05").unwrap();
+        let passes = fixtures::Fixture::open("day05");
         let mut seen: HashSet<i32> = HashSet::new();
         let mut min_pass: i32 = i32::MAX;
         let mut max_pass: i32 = 0;
-        for pass in passes.iter() {
-            let pass_id = get_seat_id(pass);
+        for pass in passes {
+            let pass_id = get_seat_id(&pass);
             seen.insert(pass_id);
             if pass_id < min_pass {
                 min_pass = pass_id;
@@ -102,7 +102,7 @@ mod tests {
         }
         for i in min_pass..max_pass {
             if !seen.contains(&i) {
-                assert_eq!(i, 0);
+                assert_eq!(i, 711);
                 break;
             }
         }

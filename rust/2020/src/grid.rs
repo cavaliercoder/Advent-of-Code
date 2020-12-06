@@ -3,7 +3,7 @@ use std::fmt::Write;
 use std::io;
 use std::ops::{Add, Index, IndexMut, Sub};
 
-use crate::fixtures;
+use crate::fixtures::Fixture;
 use crate::ToDoError;
 
 #[derive(Copy, Clone)]
@@ -82,7 +82,7 @@ impl Grid {
   }
 
   pub fn from_fixture(name: &str) -> io::Result<Self> {
-    Self::from_vec(fixtures::read(name)?)
+    Self::from_vec(Fixture::open(name).data.clone())
   }
 
   fn index_of(&self, p: Point) -> Result<usize, ToDoError> {

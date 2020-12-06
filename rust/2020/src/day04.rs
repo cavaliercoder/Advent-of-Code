@@ -6,7 +6,9 @@ mod tests {
   use lazy_static::lazy_static;
   use regex::Regex;
 
-  use crate::{fixtures, ToDoError};
+  use crate::ToDoError;
+  use crate::fixtures::Fixture;
+
 
   type Passport = HashMap<String, String>;
 
@@ -18,12 +20,11 @@ mod tests {
     static ref RE_PID: Regex = Regex::new(r"^[0-9]{9}$").unwrap();
   }
 
-  fn read_passport(lines: &mut Lines<BufReader<File>>) -> io::Result<Option<Passport>> {
+  fn read_passport(fixture: &mut Fixture) -> io::Result<Option<Passport>> {
     let mut passport = Passport::new();
     let mut did_read = false;
-    for line in lines {
+    for line in fixture {
       did_read = true;
-      let line = line?;
       if line.is_empty() {
         break;
       }
@@ -42,9 +43,9 @@ mod tests {
 
   fn read_batch(name: &str) -> Result<Vec<Passport>, ToDoError> {
     let mut passports: Vec<Passport> = Vec::new();
-    let mut lines = fixtures::read_lines(name)?;
+    let mut fixture = Fixture::open(name);
     loop {
-      let passport = read_passport(&mut lines)?;
+      let passport = read_passport(&mut fixture)?;
       match passport {
         Some(passport) => {
           passports.push(passport);

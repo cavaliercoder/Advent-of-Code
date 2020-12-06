@@ -1,34 +1,53 @@
-use std::fs::{self, File};
-use std::io;
-use std::io::{BufRead, BufReader, Lines};
+use std::fs;
 use std::str::FromStr;
 
 use crate::ToDoError;
 
-pub fn fixture(name: &str) -> String {
-  format!("../../inputs/2020/{}.dat", name)
+pub struct Fixture {
+  pub name: String,
+  pub data: Vec<u8>,
+
+  cursor: usize,
 }
 
-pub fn open(name: &str) -> io::Result<File> {
-  File::open(fixture(name))
-}
-
-pub fn read(name: &str) -> io::Result<Vec<u8>> {
-  fs::read(fixture(name))
-}
-
-pub fn read_lines(name: &str) -> io::Result<Lines<BufReader<File>>> {
-  let reader = BufReader::new(open(name)?);
-  Ok(reader.lines())
-}
-
-pub fn parse<T>(name: &str) -> Result<Vec<T>, ToDoError>
-where
-  T: FromStr,
-{
-  let mut values = Vec::new();
-  for line in read_lines(name)? {
-    values.push(line?.parse::<T>().map_err(|_| ToDoError)?);
+impl Fixture {
+  pub fn open(name: &str) -> Fixture {
+    let path = format!("../../inputs/2020/{}.dat", name);
+    Fixture {
+      name: name.to_string(),
+      data: fs::read(path).unwrap(),
+      cursor: 0,
+    }
   }
-  Ok(values)
+
+  /// Parse each line of a fixture to T.
+  pub fn parse<T>(&mut self) -> Result<Vec<T>, ToDoError>
+  where
+    T: FromStr,
+  {
+    let mut values = Vec::new();
+    for line in self {
+      values.push(line.parse::<T>().map_err(|_| ToDoError)?);
+    }
+    Ok(values)
+  }
+}
+
+/// Read a fixture line by line.
+impl Iterator for Fixture {
+  type Item = String;
+
+  fn next(&mut self) -> Option<Self::Item> {
+    if self.cursor >= self.data.len() {
+      return None;
+    }
+    let mut i: usize = self.cursor;
+    let mut buf  = String::new();
+    while i < self.data.len() && self.data[i] != b'\n' {
+      buf.push(self.data[i] as char);
+      i += 1;
+    }
+    self.cursor = i + 1;
+    Some(buf)
+  }
 }
