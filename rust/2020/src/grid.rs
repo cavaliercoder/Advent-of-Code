@@ -60,7 +60,7 @@ pub struct Grid {
 }
 
 impl Grid {
-  pub fn from_vec(buf: Vec<u8>) -> io::Result<Self> {
+  pub fn from_vec(buf: Vec<u8>) -> Self {
     let mut grid = Self {
       data: Vec::new(),
       width: 0,
@@ -78,10 +78,10 @@ impl Grid {
         i += 1;
       }
     }
-    Ok(grid)
+    grid
   }
 
-  pub fn from_fixture(name: &str) -> io::Result<Self> {
+  pub fn from_fixture(name: &str) -> Self {
     Self::from_vec(Fixture::open(name).data.clone())
   }
 

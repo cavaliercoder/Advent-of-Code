@@ -20,7 +20,7 @@ impl Fixture {
     }
   }
 
-  /// Parse each line of a fixture to T.
+  /// Parse each line of a fixture as T.
   pub fn parse<T>(&mut self) -> Result<Vec<T>, ToDoError>
   where
     T: FromStr,
@@ -41,8 +41,8 @@ impl Iterator for Fixture {
     if self.cursor >= self.data.len() {
       return None;
     }
-    let mut i: usize = self.cursor;
     let mut buf  = String::new();
+    let mut i: usize = self.cursor;
     while i < self.data.len() && self.data[i] != b'\n' {
       buf.push(self.data[i] as char);
       i += 1;

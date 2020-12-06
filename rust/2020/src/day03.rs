@@ -23,13 +23,13 @@ mod tests {
 
   #[test]
   fn test_part1() {
-    let grid = Grid::from_fixture("day03").unwrap();
+    let grid = Grid::from_fixture("day03");
     assert_eq!(count_trees(&grid, Point::new(3, 1)), 254);
   }
 
   #[test]
   fn test_part2() {
-    let grid = Grid::from_fixture("day03").unwrap();
+    let grid = Grid::from_fixture("day03");
     let mut n = count_trees(&grid, Point::new(1, 1));
     n *= count_trees(&grid,Point::new(3,1));
     n *= count_trees(&grid,Point::new(5,1));
