@@ -31,10 +31,10 @@ mod tests {
   fn test_part2() {
     let grid = Grid::from_fixture("day03");
     let mut n = count_trees(&grid, Point::new(1, 1));
-    n *= count_trees(&grid,Point::new(3,1));
-    n *= count_trees(&grid,Point::new(5,1));
-    n *= count_trees(&grid,Point::new(7,1));
-    n *= count_trees(&grid,Point::new(1,2));
+    n *= count_trees(&grid, Point::new(3, 1));
+    n *= count_trees(&grid, Point::new(5, 1));
+    n *= count_trees(&grid, Point::new(7, 1));
+    n *= count_trees(&grid, Point::new(1, 2));
     assert_eq!(n, 1666768320);
   }
 }

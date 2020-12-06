@@ -13,48 +13,30 @@ mod tests {
 
     fn get_seat_id(s: &str) -> i32 {
         assert!(RE_PASS.is_match(s));
-        let s = s.as_bytes();
-        let mut row: i32 = 0;
-        let mut column: i32 = 0;
-        let mut lower: i32 = 0;
-        let mut upper: i32 = 127;
-        for i in 0..7 {
-            row = lower + (upper - lower) / 2;
-            match s[i] {
-                b'F' => {
-                    upper = row;
+        let mut row_lower: i32 = 0;
+        let mut row_upper: i32 = 128;
+        let mut col_lower: i32 = 0;
+        let mut col_upper: i32 = 8;
+        for c in s.chars() {
+            match c {
+                'F' => {
+                    row_upper = (row_lower + row_upper) / 2;
                 }
-                b'B' => {
-                    lower = row;
+                'B' => {
+                    row_lower = (row_lower + row_upper) / 2;
+                },
+                'L' => {
+                    col_upper = (col_lower + col_upper) / 2;
                 }
-                _ => {
-                    unreachable!();
-                }
-            }
-        }
-        if s[6] == b'B' {
-            row += 1;
-        }
-        lower = 0;
-        upper = 7;
-        for i in 7..10 {
-            column = lower + (upper - lower) / 2;
-            match s[i] {
-                b'L' => {
-                    upper = column;
-                }
-                b'R' => {
-                    lower = column;
+                'R' => {
+                    col_lower = (col_lower + col_upper) / 2;
                 }
                 _ => {
                     unreachable!();
                 }
             }
         }
-        if s[9] == b'R' {
-            column += 1;
-        }
-        (row * 8) + column
+        (row_lower * 8) + col_lower
     }
 
     #[test]
