@@ -12,7 +12,7 @@ pub struct Fixture {
 
 impl Fixture {
   pub fn open(name: &str) -> Fixture {
-    let path = format!("../../inputs/2020/{}.dat", name);
+    let path = format!("../../inputs/2020/{}.txt", name);
     Fixture {
       name: name.to_string(),
       data: fs::read(path).unwrap(),
