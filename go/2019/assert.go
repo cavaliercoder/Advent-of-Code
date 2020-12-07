@@ -50,3 +50,17 @@ func AssertPos(t *testing.T, expect, actual Pos, format string, a ...interface{}
 	t.Errorf("%s. Expected: '%v', got: '%v'", s, expect, actual)
 	return false
 }
+
+func AssertGridCell(t *testing.T, grid *Grid, p Pos, expect byte, format string, a ...interface{}) bool {
+	s := fmt.Sprintf(format, a...)
+	if !grid.Contains(p) {
+		t.Errorf("%s. Expected '%c', got: out of range at %v", s, expect, p)
+		return false
+	}
+	actual := grid.Get(p)
+	if actual == expect {
+		return true
+	}
+	t.Errorf("%s. Expected '%c', got '%c' at %v", s, expect, actual, p)
+	return false
+}

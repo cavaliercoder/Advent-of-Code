@@ -1,14 +1,56 @@
 package day10
 
 import (
+	. "aoc"
 	"errors"
 	"math"
 	"sort"
 )
 
+const (
+	CellSpace    = '.'
+	CellAsteroid = '#'
+)
+
+func observableAsteroids(grid *Grid, p Pos) int {
+	m := make(map[float64]Pos)
+	for i := 0; i < len(grid.Data); i++ {
+		if grid.Data[i] != CellAsteroid {
+			continue
+		}
+		q := grid.Pos(i)
+		offset := q.Subtract(p)
+		if offset.IsZero() {
+			continue
+		}
+		Θ := offset.Degrees()
+		m[Θ] = q
+	}
+	return len(m)
+}
+
+// Part1 returns the best number of observable asteroids from any possible
+// station.
+func Part1(grid *Grid) (Pos, int) {
+	maxN := 0
+	maxP := Pos{}
+	for i := 0; i < len(grid.Data); i++ {
+		if grid.Data[i] != CellAsteroid {
+			continue
+		}
+		p := grid.Pos(i)
+		n := observableAsteroids(grid, p)
+		if n > maxN {
+			maxN = n
+			maxP = p
+		}
+	}
+	return maxP, maxN
+}
+
 type byDistance struct {
-	coords []Coord
-	origin Coord
+	coords []Pos
+	origin Pos
 }
 
 func (c *byDistance) Len() int { return len(c.coords) }
@@ -19,19 +61,19 @@ func (c *byDistance) Swap(i, j int) { c.coords[i], c.coords[j] = c.coords[j], c.
 
 // ByDistance returns a sort.Interface than will sort Coords by their distance
 // from the given origin.
-func ByDistance(coords []Coord, origin Coord) sort.Interface {
+func ByDistance(coords []Pos, origin Pos) sort.Interface {
 	return &byDistance{coords: coords, origin: origin}
 }
 
 // asteroidsByPlane groups all asteroids in the grid by their angle from the
 // given origin. Each group is sorted by distance from the origin.
-func asteroidsByPlane(grid *Grid, origin Coord) map[float64][]Coord {
-	m := make(map[float64][]Coord)
-	for i := 0; i < len(grid.data); i++ {
-		if grid.data[i] != CellAsteroid {
+func asteroidsByPlane(grid *Grid, origin Pos) map[float64][]Pos {
+	m := make(map[float64][]Pos)
+	for i := 0; i < len(grid.Data); i++ {
+		if grid.Data[i] != CellAsteroid {
 			continue
 		}
-		asteroid := grid.CoordOf(i)
+		asteroid := grid.Pos(i)
 		offset := asteroid.Subtract(origin)
 		if offset.IsZero() {
 			continue // skip origin
@@ -40,7 +82,7 @@ func asteroidsByPlane(grid *Grid, origin Coord) map[float64][]Coord {
 		if asteroids, ok := m[plane]; ok {
 			m[plane] = append(asteroids, asteroid)
 		} else {
-			asteroids = make([]Coord, 1)
+			asteroids = make([]Pos, 1)
 			asteroids[0] = asteroid
 			m[plane] = asteroids
 		}
@@ -57,8 +99,8 @@ type degreeFunc func(n float64) float64
 
 // mapPlanes changes the map key of all Coords to the output of f(key).
 // Useful to rotate or invert the value of all planes, etc.
-func mapPlanes(m map[float64][]Coord, f degreeFunc) map[float64][]Coord {
-	v := make(map[float64][]Coord, len(m))
+func mapPlanes(m map[float64][]Pos, f degreeFunc) map[float64][]Pos {
+	v := make(map[float64][]Pos, len(m))
 	for plane, coords := range m {
 		plane = math.Mod(360+f(plane), 360)
 		v[plane] = coords
@@ -66,7 +108,7 @@ func mapPlanes(m map[float64][]Coord, f degreeFunc) map[float64][]Coord {
 	return v
 }
 
-func sortedKeys(m map[float64][]Coord) []float64 {
+func sortedKeys(m map[float64][]Pos) []float64 {
 	v := make([]float64, 0, len(m))
 	for key := range m {
 		v = append(v, key)
@@ -77,7 +119,7 @@ func sortedKeys(m map[float64][]Coord) []float64 {
 
 // Part2 starts the laser at 90° and cycles it clockwise until n asteroids have
 // been destroyed. The coordinates of the Nth asteroid are returned.
-func Part2(grid *Grid, station Coord, n int) (Coord, error) {
+func Part2(grid *Grid, station Pos, n int) (Pos, error) {
 	// group asteroids by plane and rotate 90° to meet the laser at index 0.
 	m := asteroidsByPlane(grid, station)
 	m = mapPlanes(m, func(n float64) float64 { return n + 90 })
@@ -107,5 +149,5 @@ func Part2(grid *Grid, station Coord, n int) (Coord, error) {
 			return killed, nil
 		}
 	}
-	return Coord{}, errors.New("insufficient asteroids")
+	return Pos{}, errors.New("insufficient asteroids")
 }

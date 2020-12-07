@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io"
+	"math"
 	"os"
 )
 
@@ -45,6 +46,21 @@ func (p Pos) URDL() [4]Pos {
 		p.Add(DirectionDown),
 		p.Add(DirectionLeft),
 	}
+}
+
+// Degrees returns the angle of these coordinates from the positive x axis.
+func (p Pos) Degrees() float64 {
+	Θ := math.Atan2(float64(p.Y), float64(p.X))
+	if Θ < 0 {
+		Θ += 2 * math.Pi // normalize to range [0, 2π)
+	}
+	return (Θ * 360) / (2 * math.Pi)
+}
+
+// Distance returns the line-of-sight distance between this point and (0, 0).
+func (p Pos) Distance() float64 {
+	x, y := float64(p.X), float64(p.Y)
+	return math.Sqrt(x*x + y*y)
 }
 
 func (p Pos) String() string {
