@@ -15,10 +15,12 @@ impl Point {
   pub fn new(x: i32, y: i32) -> Point {
     Point { x: x, y: y }
   }
+
   pub fn zero() -> Point {
     Self::new(0, 0)
   }
-  pub fn is_zero(self) -> bool {
+
+  pub fn is_zero(&self) -> bool {
     self.x == 0 && self.y == 0
   }
 }
@@ -61,14 +63,21 @@ impl Grid {
   }
 
   pub fn contains(&self, p: Point) -> bool {
-    p.x >= 0 && p.x < self.width && p.y >= 0 && p.y < self.height
+    self.index_of(p).is_some()
   }
 
-  fn index_of(&self, p: Point) -> usize {
-    if !self.contains(p) {
-      panic!(format!("position out of bounds: {}", p));
+  pub fn get(&self, p: Point) -> Option<u8> {
+    match self.index_of(p) {
+      Some(i) => Some(self.data[i]),
+      None => None,
     }
-    ((p.y * self.width) + p.x) as usize
+  }
+
+  fn index_of(&self, p: Point) -> Option<usize> {
+    if p.x < 0 || p.x >= self.width || p.y < 0 || p.y >= self.height {
+      return None
+    }
+    Some(((p.y * self.width) + p.x) as usize)
   }
 }
 
@@ -97,15 +106,25 @@ impl From<Fixture> for Grid {
 
 impl Index<Point> for Grid {
   type Output = u8;
+
   fn index(&self, p: Point) -> &Self::Output {
-    &self.data[self.index_of(p)]
+    match self.index_of(p) {
+      Some(i) => &self.data[i],
+      None => {
+          panic!(format!("position out of bounds: {}", p));
+      },
+    }
   }
 }
 
 impl IndexMut<Point> for Grid {
   fn index_mut(&mut self, p: Point) -> &mut Self::Output {
-    let i = self.index_of(p);
-    &mut self.data[i]
+    match self.index_of(p) {
+      Some(i) => &mut self.data[i],
+      None => {
+          panic!(format!("position out of bounds: {}", p));
+      },
+    }
   }
 }
 
