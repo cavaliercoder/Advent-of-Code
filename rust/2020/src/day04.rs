@@ -1,12 +1,10 @@
 #[cfg(test)]
 mod tests {
   use std::collections::HashMap;
-  use std::fs::File;
-  use std::io::{self, BufReader, Lines};
+
   use lazy_static::lazy_static;
   use regex::Regex;
 
-  use crate::ToDoError;
   use crate::fixtures::Fixture;
 
 
@@ -20,41 +18,26 @@ mod tests {
     static ref RE_PID: Regex = Regex::new(r"^[0-9]{9}$").unwrap();
   }
 
-  fn read_passport(fixture: &mut Fixture) -> io::Result<Option<Passport>> {
+  fn read_passports(name: &str) -> Vec<Passport> {
+    let mut passports: Vec<Passport> = Vec::new();
     let mut passport = Passport::new();
-    let mut did_read = false;
-    for line in fixture {
-      did_read = true;
+    for line in Fixture::open(name) {
       if line.is_empty() {
-        break;
+        passports.push(passport);
+        passport = Passport::new();
+        continue
       }
       let pairs = line.split(' ');
       for pair in pairs {
         let parts: Vec<&str> = pair.split(':').collect();
-        assert_eq!(parts.len(), 2, "pair: \"{}\"", pair);
+        assert_eq!(parts.len(), 2, "bad k:v pair: \"{}\"", pair);
         passport.insert(parts[0].to_string(), parts[1].to_string());
-      }
+      } 
     }
-    if did_read {
-      return Ok(Some(passport));
+    if !passport.is_empty() {
+      passports.push(passport);
     }
-    Ok(None)
-  }
-
-  fn read_batch(name: &str) -> Result<Vec<Passport>, ToDoError> {
-    let mut passports: Vec<Passport> = Vec::new();
-    let mut fixture = Fixture::open(name);
-    loop {
-      let passport = read_passport(&mut fixture)?;
-      match passport {
-        Some(passport) => {
-          passports.push(passport);
-        }
-        None => {
-          return Ok(passports);
-        }
-      }
-    }
+    passports
   }
 
   fn check_passport(passport: &Passport) -> bool {
@@ -148,7 +131,7 @@ mod tests {
 
   #[test]
   fn test_part1() {
-    let passports = read_batch("day04").unwrap();
+    let passports = read_passports("day04");
     let mut n = 0;
     for passport in passports.iter() {
       if check_passport(&passport) {
@@ -160,7 +143,7 @@ mod tests {
 
   #[test]
   fn test_part2() {
-    let passports = read_batch("day04").unwrap();
+    let passports = read_passports("day04");
     let mut n = 0;
     for passport in passports.iter() {
       if check_passport_strict(&passport) {
