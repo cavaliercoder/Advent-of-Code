@@ -40,25 +40,26 @@ mod tests {
         let mut seen: HashSet<i32> = HashSet::new();
         loop {
             seen.insert(pc);
-            let mut next: i32 = pc + 1;
             match &data[pc as usize] {
                 Instruction::ACC(n) => {
+                    pc += 1;
                     acc += n;
                 }
                 Instruction::JMP(n) => {
-                    next = pc + n;
+                    pc += n;
                 }
-                Instruction::NOP(_) => {}
+                Instruction::NOP(_) => {
+                    pc += 1;
+                }
             };
-            if next == data.len() as i32 {
+            if pc == data.len() as i32 {
                 // terminated correctly
                 return (acc, true);
             }
-            if next < 0 || next > data.len() as i32 || seen.contains(&next) {
+            if pc < 0 || pc > data.len() as i32 || seen.contains(&pc) {
                 // out of range or looped
                 return (acc, false);
             }
-            pc = next;
         }
     }
 
