@@ -35,7 +35,6 @@ mod tests {
         }
     }
 
-
     fn bag_contains(rules: &HashMap<&String, &Rule>, bag: &String) -> bool {
         fn bag_contains_recursive(
             rules: &HashMap<&String, &Rule>,

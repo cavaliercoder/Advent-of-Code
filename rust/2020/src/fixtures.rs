@@ -41,8 +41,8 @@ impl Iterator for Fixture {
     if self.cursor >= self.data.len() {
       return None;
     }
+    let mut i = self.cursor;
     let mut buf  = String::new();
-    let mut i: usize = self.cursor;
     while i < self.data.len() && self.data[i] != b'\n' {
       buf.push(self.data[i] as char);
       i += 1;
