@@ -20,7 +20,7 @@ mod tests {
             if !valid {
                 return Some(*n);
             }
-            preamble.remove(&values[i-preamble_len]);
+            preamble.remove(&values[i - preamble_len]);
             preamble.insert(values[i]);
         }
         None
