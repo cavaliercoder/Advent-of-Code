@@ -6,12 +6,12 @@ mod tests {
     use crate::fixtures::Fixture;
 
     fn find_first_invalid(values: &[i64], preamble_len: usize) -> Option<i64> {
+        let mut preamble: HashSet<i64> =
+            HashSet::from_iter(values[0..preamble_len].iter().cloned());
         for i in preamble_len..values.len() {
             let n = &values[i];
-            let preamble: HashSet<i64> =
-                HashSet::from_iter(values[i - preamble_len..i].iter().cloned());
             let mut valid = false;
-            for m in preamble.iter() {
+            for m in &preamble {
                 if preamble.contains(&(n - *m)) {
                     valid = true;
                     break;
@@ -20,6 +20,8 @@ mod tests {
             if !valid {
                 return Some(*n);
             }
+            preamble.remove(&values[i-preamble_len]);
+            preamble.insert(values[i]);
         }
         None
     }
