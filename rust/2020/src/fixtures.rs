@@ -23,7 +23,7 @@ impl Fixture {
   /// Parse each line of a fixture as T.
   pub fn parse<T>(&mut self) -> Result<Vec<T>, ToDoError>
   where
-    T: FromStr,
+    T: FromStr
   {
     let mut values = Vec::new();
     for line in self {

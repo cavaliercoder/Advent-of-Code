@@ -56,7 +56,7 @@ mod tests {
                 // terminated correctly
                 return (acc, true);
             }
-            if pc < 0 || pc > data.len() as i32 || seen.contains(&pc) {
+            if pc < 0 || pc >= data.len() as i32 || seen.contains(&pc) {
                 // out of range or looped
                 return (acc, false);
             }

@@ -2,7 +2,7 @@
 mod tests {
   use crate::grid::{Grid, Point};
 
-  fn wrap_point(grid: &Grid, p: &Point) -> Point {
+  fn wrap_point(grid: &Grid, p: Point) -> Point {
     Point {
       x: p.x % grid.width,
       y: p.y,
@@ -16,7 +16,7 @@ mod tests {
       if grid[p] == b'#' {
         n += 1;
       }
-      p = wrap_point(&grid, &(p + slope));
+      p = wrap_point(&grid, p + slope);
     }
     n
   }
