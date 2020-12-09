@@ -1,26 +1,23 @@
 #[cfg(test)]
 mod tests {
-    use std::cmp::Ordering;
     use std::collections::HashSet;
     use std::iter::{FromIterator, Iterator};
-    use std::ops::Range;
 
     use crate::fixtures::Fixture;
-
-    fn is_valid(n: i64, preamble: &[i64]) -> bool {
-        let preamble: HashSet<i64> = HashSet::from_iter(preamble.iter().cloned());
-        for m in preamble.iter() {
-            if preamble.contains(&(n - *m)) {
-                return true;
-            }
-        }
-        false
-    }
 
     fn find_first_invalid(values: &[i64], preamble_len: usize) -> Option<i64> {
         for i in preamble_len..values.len() {
             let n = &values[i];
-            if !is_valid(*n, &values[i - preamble_len..i]) {
+            let preamble: HashSet<i64> =
+                HashSet::from_iter(values[i - preamble_len..i].iter().cloned());
+            let mut valid = false;
+            for m in preamble.iter() {
+                if preamble.contains(&(n - *m)) {
+                    valid = true;
+                    break;
+                }
+            }
+            if !valid {
                 return Some(*n);
             }
         }
@@ -28,35 +25,21 @@ mod tests {
     }
 
     fn find_weakness(values: &Vec<i64>, needle: i64) -> Option<i64> {
-        let mut sum = values[0] + values[1];
-        let r: &mut Range<usize> = &mut Range { start: 0, end: 2 };
-        for _ in 0..values.len() - 1 {
-            match sum.cmp(&needle) {
-                Ordering::Less => {
-                    // expand end of range until >= needle
-                    while sum < needle {
-                        sum += values[r.end];
-                        r.end += 1;
-                    }
-                }
-                Ordering::Greater => {
-                    // contract range until <= needle
-                    while sum > needle {
-                        sum -= values[r.end - 1];
-                        r.end -= 1;
-                    }
-                }
-                _ => (),
+        let mut sum = values[0];
+        let mut j: usize = 1;
+        for i in 0..values.len() - 1 {
+            while j < values.len() && sum < needle {
+                sum += values[j];
+                j += 1;
             }
             if sum == needle {
-                // answer is sum of in and max in values[r]
-                let min = values[r.clone()].iter().min().unwrap_or(&0);
-                let max = values[r.clone()].iter().max().unwrap_or(&0);
-                return Some(min + max);
+                let values = &values[i..j];
+                return values
+                    .iter()
+                    .min()
+                    .and_then(|min| values.iter().max().map(|max| min + max));
             }
-            // shift start of range forward
-            sum -= values[r.start];
-            r.start += 1;
+            sum -= values[i];
         }
         None
     }
