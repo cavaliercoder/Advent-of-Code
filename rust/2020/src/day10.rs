@@ -1,18 +1,22 @@
 #[cfg(test)]
 mod tests {
+    use std::collections::HashSet;
+    use std::iter::FromIterator;
+
     use crate::fixtures::Fixture;
 
     fn get_joltage_distribution(adapters: &Vec<i64>) -> i64 {
-        let mut n = 0;
-        let mut diffs: Vec<i64> = vec![0, 0, 1];
-        let mut adapters = adapters.to_vec();
-        adapters.sort();
-        for adapter in adapters.iter() {
-            let diff = adapter - n;
-            diffs[(diff as usize) - 1] += 1;
-            n = *adapter;
+        let mut diffs = (0i64, 1i64); // +1 for built-in adapter at the end
+        let mut adapters: HashSet<i64> = HashSet::from_iter(adapters.iter().cloned());
+        adapters.insert(0); //  outlet
+        for adapter in adapters.iter().cloned() {
+            if adapters.contains(&(adapter + 1)) {
+                diffs.0 += 1;
+            } else if adapters.contains(&(adapter + 3)) {
+                diffs.1 += 1;
+            }
         }
-        diffs[0] * diffs[2]
+        diffs.0 * diffs.1
     }
 
     fn count_paths(adapters: &Vec<i64>) -> i64 {
