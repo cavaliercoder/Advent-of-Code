@@ -1,6 +1,6 @@
 use std::fmt;
 use std::fmt::Write;
-use std::iter::{Cloned, Iterator};
+use std::iter::Iterator;
 use std::ops::{Add, Index, IndexMut, Sub};
 
 use crate::fixtures::Fixture;
@@ -27,7 +27,7 @@ impl Point {
     Point { x: x, y: y }
   }
 
-  pub fn all_directions() -> Cloned<std::slice::Iter<'static, Point>> {
+  pub fn all_directions() -> impl Iterator<Item=Point> {
     ALL_DIRECTIONS.iter().cloned()
   }
 
