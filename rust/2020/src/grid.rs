@@ -27,7 +27,10 @@ impl Point {
     Point { x: x, y: y }
   }
 
-  pub fn all_directions() -> impl Iterator<Item=Point> {
+  /// An iterator visiting all points adjacent to (0, 0).
+  ///
+  /// Includes diagonals. Ordering is undefined.
+  pub fn all_directions() -> impl Iterator<Item = Point> {
     ALL_DIRECTIONS.iter().cloned()
   }
 
@@ -76,6 +79,7 @@ pub struct Grid {
 }
 
 impl Grid {
+  /// Create a new grid filled with the seed value.
   pub fn new(width: i32, height: i32, seed: u8) -> Self {
     Grid {
       width,
@@ -84,18 +88,23 @@ impl Grid {
     }
   }
 
+  /// Read a grid from a test fixture.
   pub fn from_fixture(name: &str) -> Self {
     Grid::from(Fixture::open(name))
   }
 
+  /// An iterator visiting all Points in the grid, scanning the X axis first and
+  /// the the Y axis, in order. The iterator element type is (Point, &'a u8).
   pub fn iter(&self) -> Iter {
     Iter { grid: self, i: 0 }
   }
 
+  /// Returns `true` if the specified point is within the bounds of the grid.
   pub fn contains(&self, p: Point) -> bool {
     self.index_of(p).is_some()
   }
 
+  /// Returns a the value corresponding to the specified point in the grid.
   pub fn get(&self, p: Point) -> Option<u8> {
     match self.index_of(p) {
       Some(i) => Some(self.data[i]),
@@ -103,6 +112,7 @@ impl Grid {
     }
   }
 
+  /// Returns the count of all points in the grid with the specified value.
   pub fn count(&self, v: u8) -> i32 {
     let mut n: i32 = 0;
     for a in self.data.iter() {
@@ -113,6 +123,8 @@ impl Grid {
     n
   }
 
+  /// Converts a Point to an index in the grids underlying data structure.
+  /// Returns None if the point is out of bounds.
   fn index_of(&self, p: Point) -> Option<usize> {
     if p.x < 0 || p.x >= self.width || p.y < 0 || p.y >= self.height {
       return None;
