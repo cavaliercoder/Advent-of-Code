@@ -1,8 +1,15 @@
+use std::error::Error;
 use std::fmt;
 use std::io;
 
 #[derive(Debug)]
 pub struct ToDoError;
+
+impl Error for ToDoError {
+  fn source(&self) -> Option<&(dyn Error + 'static)> {
+    None
+  }
+}
 
 impl fmt::Display for ToDoError {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -11,11 +18,10 @@ impl fmt::Display for ToDoError {
 }
 
 impl From<io::Error> for ToDoError {
-    fn from(_: io::Error) -> Self {
-        ToDoError{}
-    }
+  fn from(_: io::Error) -> Self {
+    ToDoError {}
+  }
 }
-
 
 mod fixtures;
 mod grid;
@@ -31,3 +37,4 @@ mod day08;
 mod day09;
 mod day10;
 mod day11;
+mod day12;
