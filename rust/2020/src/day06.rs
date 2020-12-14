@@ -6,7 +6,7 @@ mod tests {
     fn test_part1() {
         let mut sum = 0;
         let mut group_seen: u32 = 0;
-        for line in Fixture::open("day06") {
+        for line in Fixture::open("day06").iter() {
             if line.is_empty() {
                 sum += group_seen.count_ones();
                 group_seen = 0;
@@ -24,7 +24,7 @@ mod tests {
     fn test_part2() {
         let mut sum = 0;
         let mut group_seen: u32 = 0xFFFFFFFF;
-        for line in Fixture::open("day06") {
+        for line in Fixture::open("day06").iter() {
             if line.is_empty() {
                 sum += group_seen.count_ones();
                 group_seen = 0xFFFFFFFF;

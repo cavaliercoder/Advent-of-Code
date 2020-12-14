@@ -21,7 +21,7 @@ mod tests {
   fn read_passports(name: &str) -> Vec<Passport> {
     let mut passports: Vec<Passport> = Vec::new();
     let mut passport = Passport::new();
-    for line in Fixture::open(name) {
+    for line in Fixture::open(name).iter() {
       if line.is_empty() {
         passports.push(passport);
         passport = Passport::new();

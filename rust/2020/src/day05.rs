@@ -57,7 +57,7 @@ mod tests {
     fn test_part1() {
         let passes = fixtures::Fixture::open("day05");
         let mut max_pass = 0;
-        for pass in passes {
+        for pass in passes.iter() {
             let pass_id = get_seat_id(&pass);
             if pass_id > max_pass {
                 max_pass = pass_id;
@@ -72,7 +72,7 @@ mod tests {
         let mut seen: HashSet<i32> = HashSet::new();
         let mut min_pass: i32 = i32::MAX;
         let mut max_pass: i32 = 0;
-        for pass in passes {
+        for pass in passes.iter() {
             let pass_id = get_seat_id(&pass);
             seen.insert(pass_id);
             if pass_id < min_pass {

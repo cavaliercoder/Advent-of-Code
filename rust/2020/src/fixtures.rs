@@ -6,8 +6,6 @@ use crate::ToDoError;
 pub struct Fixture {
   pub name: String,
   pub data: Vec<u8>,
-
-  cursor: usize,
 }
 
 impl Fixture {
@@ -16,6 +14,12 @@ impl Fixture {
     Fixture {
       name: name.to_string(),
       data: fs::read(path).unwrap(),
+    }
+  }
+
+  pub fn iter(&self) -> Iter {
+    Iter {
+      fixture: &self,
       cursor: 0,
     }
   }
@@ -26,25 +30,29 @@ impl Fixture {
     T: FromStr,
   {
     let mut values = Vec::new();
-    for line in self {
+    for line in self.iter() {
       values.push(line.parse::<T>().map_err(|_| ToDoError)?);
     }
     Ok(values)
   }
 }
 
-/// Read a fixture line by line.
-impl Iterator for Fixture {
+pub struct Iter<'a> {
+  fixture: &'a Fixture,
+  cursor: usize,
+}
+
+impl Iterator for Iter<'_> {
   type Item = String;
 
   fn next(&mut self) -> Option<Self::Item> {
-    if self.cursor >= self.data.len() {
+    if self.cursor >= self.fixture.data.len() {
       return None;
     }
     let mut i = self.cursor;
     let mut buf = String::new();
-    while i < self.data.len() && self.data[i] != b'\n' {
-      buf.push(self.data[i] as char);
+    while i < self.fixture.data.len() && self.fixture.data[i] != b'\n' {
+      buf.push(self.fixture.data[i] as char);
       i += 1;
     }
     self.cursor = i + 1;
