@@ -15,8 +15,8 @@ mod tests {
     fn parse_mask(s: &str) -> Result<Instruction, ToDoError> {
         let s = &s[7..]; // trim "mask = "
         let mut i: usize = 36; // value width - 1
-        let mut mask: i64 = 0;
-        let mut value: i64 = 0;
+        let mut mask: i64 = 0; // all X's
+        let mut value: i64 = 0; // all 1s and 0s
         for c in s.chars() {
             i -= 1;
             match c {
@@ -66,6 +66,7 @@ mod tests {
         let mut mask_mask: i64 = 0;
         let mut mask_value: i64 = 0;
         let mut mem: HashMap<i64, i64> = HashMap::new();
+        let mut sum: i64 = 0;
         for instruction in instructions {
             match instruction {
                 Instruction::Mask(mask, value) => {
@@ -77,7 +78,6 @@ mod tests {
                 }
             }
         }
-        let mut sum: i64 = 0;
         for v in mem.values() {
             sum += v;
         }
@@ -98,11 +98,10 @@ mod tests {
 
     fn get_permutations(addr: i64, mask: i64) -> Vec<i64> {
         let mut addresses: Vec<i64> = Vec::new();
-        let mut stack: Vec<(i64, i64)> = Vec::new();
-        stack.push((addr, mask));
+        let mut stack = vec![(addr, mask)];
         while !stack.is_empty() {
             let (addr, mask) = stack.pop().unwrap();
-            if mask == 0 {
+            if mask == 0 { // no more X's
                 addresses.push(addr);
                 continue;
             }
