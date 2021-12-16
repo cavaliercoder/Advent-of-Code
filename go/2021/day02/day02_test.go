@@ -7,7 +7,7 @@ import (
 	"aoc2021"
 )
 
-func OpenFixture(name string) []string {
+func mustOpenFixture(name string) []string {
 	f, err := aoc2021.OpenFixture("day02")
 	if err != nil {
 		panic(err)
@@ -25,7 +25,7 @@ func OpenFixture(name string) []string {
 }
 
 func TestPart1(t *testing.T) {
-	commands := OpenFixture("day02")
+	commands := mustOpenFixture("day02")
 	depth, hpos, err := PilotSub(commands)
 	if err != nil {
 		t.Fatal(err)
@@ -34,7 +34,7 @@ func TestPart1(t *testing.T) {
 }
 
 func TestPart2(t *testing.T) {
-	commands := OpenFixture("day02")
+	commands := mustOpenFixture("day02")
 	depth, hpos, err := PilotSubWithAim(commands)
 	if err != nil {
 		t.Fatal(err)

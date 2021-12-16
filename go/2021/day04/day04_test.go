@@ -58,7 +58,7 @@ func parseBoard(r *bufio.Reader) (*Board, error) {
 	return board, nil
 }
 
-func OpenFixture(name string) (calls []int, boards []*Board) {
+func mustOpenFixture(name string) (calls []int, boards []*Board) {
 	f, err := aoc2021.OpenFixture(name)
 	if err != nil {
 		panic(err)
@@ -83,7 +83,7 @@ func OpenFixture(name string) (calls []int, boards []*Board) {
 }
 
 func TestPart1(t *testing.T) {
-	calls, boards := OpenFixture("day04")
+	calls, boards := mustOpenFixture("day04")
 	for _, call := range calls {
 		for _, board := range boards {
 			if board.Call(call) {
@@ -98,7 +98,7 @@ func TestPart1(t *testing.T) {
 func TestPart2(t *testing.T) {
 	var lastBoard *Board
 	var lastCall int
-	calls, boards := OpenFixture("day04")
+	calls, boards := mustOpenFixture("day04")
 	for _, call := range calls {
 		for i, board := range boards {
 			if board == nil {

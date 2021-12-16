@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func OpenFixture(name string) []int {
+func mustOpenFixture(name string) []int {
 	f, err := aoc2021.OpenFixture(name)
 	if err != nil {
 		panic(err)
@@ -17,11 +17,14 @@ func OpenFixture(name string) []int {
 	for scanner.Scan() {
 		a = append(a, Parse(scanner.Bytes()))
 	}
+	if err := scanner.Err(); err != nil {
+		panic(err)
+	}
 	return a
 }
 
 func TestPart1(t *testing.T) {
-	a := OpenFixture("day03")
+	a := mustOpenFixture("day03")
 	aoc2021.AssertInt(
 		t,
 		3969000,
@@ -31,7 +34,7 @@ func TestPart1(t *testing.T) {
 }
 
 func TestPart2(t *testing.T) {
-	a := OpenFixture("day03")
+	a := mustOpenFixture("day03")
 	aoc2021.AssertInt(
 		t,
 		4267809,
