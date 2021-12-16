@@ -12,3 +12,11 @@ func Fixture(name string) string {
 func OpenFixture(name string) (*os.File, error) {
 	return os.Open(Fixture(name))
 }
+
+func MustOpenFixture(name string) *os.File {
+	f, err := OpenFixture(name)
+	if err != nil {
+		panic(err)
+	}
+	return f
+}
