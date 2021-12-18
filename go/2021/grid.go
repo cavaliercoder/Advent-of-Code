@@ -14,6 +14,8 @@ var (
 	PosRight Pos = Pos{1, 0}
 	PosDown  Pos = Pos{0, 1}
 	PosLeft  Pos = Pos{-1, 0}
+
+	PosUDLR = []Pos{PosUp, PosDown, PosLeft, PosRight}
 )
 
 type Pos struct {
@@ -79,6 +81,9 @@ func ReadGrid(r io.Reader) (*Grid, error) {
 	return grid, nil
 }
 
+// Len returns the total number of cells in the grid.
+func (c *Grid) Len() int { return len(c.Data) }
+
 func (c *Grid) Reset(b byte) {
 	for i := 0; i < len(c.Data); i++ {
 		c.Data[i] = b
@@ -124,6 +129,18 @@ func (c *Grid) Adj(p Pos) []Pos {
 			if c.Contains(p2) {
 				a = append(a, p2)
 			}
+		}
+	}
+	return a
+}
+
+// UDLR (up, down, left, right) returns a slice of all adjacent positions to the
+// given position, excluding diagonals.
+func (c *Grid) UDLR(p Pos) []Pos {
+	a := make([]Pos, 0, 4)
+	for _, dir := range PosUDLR {
+		if p2 := p.Add(dir); c.Contains(p2) {
+			a = append(a, p2)
 		}
 	}
 	return a
