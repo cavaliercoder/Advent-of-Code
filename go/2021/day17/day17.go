@@ -6,14 +6,6 @@ import (
 	. "aoc2021"
 )
 
-type Rect struct {
-	A, B Pos
-}
-
-func (r Rect) ContainsX(x int) bool { return r.A.X <= x && x <= r.B.X }
-func (r Rect) ContainsY(y int) bool { return r.A.Y >= y && y >= r.B.Y }
-func (r Rect) Contains(p Pos) bool  { return r.ContainsX(p.X) && r.ContainsY(p.Y) }
-
 // Limit computes the highest positive value for initial velocity u, assuming
 // constant acceleration of -1.
 func Limit(u int) int {
