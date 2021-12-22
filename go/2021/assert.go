@@ -33,6 +33,15 @@ func AssertInt64(t *testing.T, expect, actual int64, format string, a ...interfa
 	return false
 }
 
+func AssertBool(t *testing.T, expect, actual bool, format string, a ...interface{}) bool {
+	if actual == expect {
+		return true
+	}
+	s := fmt.Sprintf(format, a...)
+	t.Errorf("%s. Expected: %v, got: %v", s, expect, actual)
+	return false
+}
+
 func AssertByte(t *testing.T, expect, actual byte, format string, a ...interface{}) bool {
 	if actual == expect {
 		return true

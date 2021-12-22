@@ -63,7 +63,6 @@ func (r Rect) Expand(n int) Rect {
 }
 
 func (r Rect) Fit(p Pos) Rect {
-	// fmt.Print("Before:", r, ", +", p, "=")
 	if p.X < r.A.X {
 		r.A.X = p.X
 	}
@@ -76,7 +75,6 @@ func (r Rect) Fit(p Pos) Rect {
 	if p.Y < r.B.Y {
 		r.B.Y = p.Y
 	}
-	// fmt.Println("After:", r)
 	return r
 }
 
