@@ -85,6 +85,7 @@ type Scanner struct {
 
 	rotations []*Scanner
 	moves     map[Coord]*Scanner
+	noFit     map[Coord]struct{}
 }
 
 func NewScanner(position Coord, beacons ...Coord) *Scanner {
@@ -92,6 +93,7 @@ func NewScanner(position Coord, beacons ...Coord) *Scanner {
 		Position: position,
 		Beacons:  make(map[Coord]struct{}, 32),
 		moves:    make(map[Coord]*Scanner),
+		noFit:    make(map[Coord]struct{}),
 	}
 	v.Add(beacons...)
 	return v
@@ -253,23 +255,21 @@ func Merge(scanners ...*Scanner) (field *Field, ok bool) {
 }
 
 func tryRotations(field *Field, s *Scanner) *Scanner {
-	for _, r := range s.Rotations() {
-		if v := tryAlignments(field, r); v != nil {
-			return v
+	rotations := s.Rotations()
+	for b := range field.Beacons {
+		if _, ok := s.noFit[b]; ok {
+			continue
 		}
-	}
-	return nil
-}
-
-func tryAlignments(field *Field, s *Scanner) *Scanner {
-	for a := range s.Beacons {
-		for b := range field.Beacons {
-			offset := b.Sub(a)
-			s2 := s.Move(offset)
-			if field.CanFit(s2) {
-				return s2
+		for _, r := range rotations {
+			for a := range r.Beacons {
+				offset := b.Sub(a)
+				m := r.Move(offset)
+				if field.CanFit(m) {
+					return m
+				}
 			}
 		}
+		s.noFit[b] = struct{}{}
 	}
 	return nil
 }
