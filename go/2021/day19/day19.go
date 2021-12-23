@@ -10,6 +10,7 @@ import (
 type Transform [9]int
 
 // Rotations contains all possible 3D rotations with increments of 90 degrees.
+// Courtesy: https://www.euclideanspace.com/maths/algebra/matrix/transforms/examples/index.htm
 var Rotations = []Transform{
 	{1, 0, 0, 0, 1, 0, 0, 0, 1}, // identity
 	{0, 0, 1, 0, 1, 0, -1, 0, 0},
