@@ -141,10 +141,11 @@ func ReadGrid(r io.Reader) (*Grid, error) {
 // Len returns the total number of cells in the grid.
 func (c *Grid) Len() int { return len(c.Data) }
 
-func (c *Grid) Reset(b byte) {
+func (c *Grid) Reset(b byte) *Grid {
 	for i := 0; i < len(c.Data); i++ {
 		c.Data[i] = b
 	}
+	return c
 }
 
 func (c *Grid) Index(pos Pos) int {
@@ -222,7 +223,7 @@ func (c *Grid) GetWithDefault(p Pos, value byte) byte {
 func (c *Grid) MustGet(p Pos) byte {
 	b, ok := c.Get(p)
 	if !ok {
-		panic(fmt.Sprintf("out of bounds: %v", p))
+		panic(fmt.Sprintf("out of bounds: %v (%dx%d)", p, c.Width, c.Height))
 	}
 	return b
 }
