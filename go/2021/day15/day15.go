@@ -1,26 +1,26 @@
 package day15
 
 import (
-	. "aoc2021"
+	"aoc/internal/geo"
 )
 
-func GrowGrid(g *Grid) *Grid {
-	g2 := NewGrid(g.Width*5, g.Height*5)
+func GrowGrid(g *geo.Grid) *geo.Grid {
+	g2 := geo.NewGrid(g.Width*5, g.Height*5)
 	for y := 0; y < g2.Height; y++ {
 		for x := 0; x < g2.Width; x++ {
-			v := int(g.MustGet(Pos{X: x % g.Width, Y: y % g.Height}))
+			v := int(g.MustGet(geo.Pos{X: x % g.Width, Y: y % g.Height}))
 			v += x/g.Width + y/g.Height
 			v %= 9
 			if v == 0 {
 				v = 9
 			}
-			g2.Set(Pos{X: x, Y: y}, byte(v))
+			g2.Set(geo.Pos{X: x, Y: y}, byte(v))
 		}
 	}
 	return g2
 }
 
-func ShortestPath(g *Grid, a, b int) int {
+func ShortestPath(g *geo.Grid, a, b int) int {
 	costs := make([]int, g.Len())
 	seen := make([]byte, g.Len())
 	q := make([]int, 1, g.Len())

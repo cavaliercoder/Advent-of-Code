@@ -3,7 +3,7 @@ package day17
 import (
 	"math"
 
-	. "aoc2021"
+	"aoc/internal/geo"
 )
 
 // Limit computes the highest positive value for initial velocity u, assuming
@@ -32,7 +32,7 @@ func VelocityWithLimit(lim int) int {
 
 // TrickShot returns the y position of the highest possible azimuth of any shot
 // that can land in the target.
-func TrickShot(target Rect) (y int) {
+func TrickShot(target geo.Rect) (y int) {
 	// We recognize that all positive values of Y-velocity will eventually
 	// result in a y-value of 0 before plunging below 0 with a velocity that is
 	// the inverse of the initial velocity less 1. The best possible velocity to
@@ -44,8 +44,8 @@ func TrickShot(target Rect) (y int) {
 
 // EnumerateTrajectories returns every possible initial trajectory that will
 // land in r at any T.
-func EnumerateTrajectories(r Rect) map[Pos]struct{} {
-	m := make(map[Pos]struct{}, 64)
+func EnumerateTrajectories(r geo.Rect) map[geo.Pos]struct{} {
+	m := make(map[geo.Pos]struct{}, 64)
 
 	// Lowest X-velocity allowed is the first with a limit that lands in bounds.
 	// Any lower won't reach the target. Highest X-velocity allowed lands at the
@@ -88,7 +88,7 @@ func EnumerateTrajectories(r Rect) map[Pos]struct{} {
 				}
 				if r.ContainsX(x) {
 					// Δx0 lands in the target at time T
-					m[Pos{X: Δx0, Y: Δy0}] = struct{}{}
+					m[geo.Pos{X: Δx0, Y: Δy0}] = struct{}{}
 				}
 			}
 		}

@@ -1,4 +1,4 @@
-package aoc2021
+package util
 
 func Abs(n int) int {
 	if n < 0 {

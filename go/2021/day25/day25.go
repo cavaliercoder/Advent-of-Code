@@ -1,20 +1,20 @@
 package day25
 
 import (
-	. "aoc2021"
+	"aoc/internal/geo"
 )
 
-func stepEast(g *Grid) (*Grid, bool) {
+func stepEast(g *geo.Grid) (*geo.Grid, bool) {
 	moved := false
-	g2 := NewGrid(g.Width, g.Height).Reset('.')
+	g2 := geo.NewGrid(g.Width, g.Height).Reset('.')
 	for y := 0; y < g.Height; y++ {
 		for x := 0; x < g.Width; x++ {
-			p := Pos{X: x, Y: y}
+			p := geo.Pos{X: x, Y: y}
 			g2.Set(p, g.MustGet(p))
 			if g.MustGet(p) != '>' {
 				continue
 			}
-			p2 := Pos{X: (x + 1) % g.Width, Y: y}
+			p2 := geo.Pos{X: (x + 1) % g.Width, Y: y}
 			if g.MustGet(p2) == '.' {
 				g2.Set(p, '.')
 				g2.Set(p2, '>')
@@ -26,17 +26,17 @@ func stepEast(g *Grid) (*Grid, bool) {
 	return g2, moved
 }
 
-func stepSouth(g *Grid) (*Grid, bool) {
+func stepSouth(g *geo.Grid) (*geo.Grid, bool) {
 	moved := false
-	g2 := NewGrid(g.Width, g.Height).Reset('.')
+	g2 := geo.NewGrid(g.Width, g.Height).Reset('.')
 	for x := 0; x < g.Width; x++ {
 		for y := 0; y < g.Height; y++ {
-			p := Pos{X: x, Y: y}
+			p := geo.Pos{X: x, Y: y}
 			g2.Set(p, g.MustGet(p))
 			if g.MustGet(p) != 'v' {
 				continue
 			}
-			p2 := Pos{X: x, Y: (y + 1) % g.Height}
+			p2 := geo.Pos{X: x, Y: (y + 1) % g.Height}
 			if g.MustGet(p2) == '.' {
 				g2.Set(p, '.')
 				g2.Set(p2, 'v')
@@ -48,14 +48,14 @@ func stepSouth(g *Grid) (*Grid, bool) {
 	return g2, moved
 }
 
-func step(g *Grid) (*Grid, bool) {
+func step(g *geo.Grid) (*geo.Grid, bool) {
 	var movedEast, movedSouth bool
 	g, movedEast = stepEast(g)
 	g, movedSouth = stepSouth(g)
 	return g, movedEast || movedSouth
 }
 
-func MaxSteps(g *Grid) int {
+func MaxSteps(g *geo.Grid) int {
 	var moved bool
 	for i := 1; ; i++ {
 		g, moved = step(g)

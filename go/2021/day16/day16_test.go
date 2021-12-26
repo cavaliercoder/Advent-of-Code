@@ -3,30 +3,20 @@ package day16
 import (
 	"bytes"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"testing"
 
-	. "aoc2021"
+	"aoc/internal/assert"
+	"aoc/internal/fixture"
 )
 
-func mustOpenFixture(name string) []byte {
-	f := MustOpenFixture(name)
-	defer f.Close()
-	return mustReadFixture(f)
-}
-
-func mustReadFixture(r io.Reader) []byte {
-	b, err := ioutil.ReadAll(r)
-	if err != nil {
-		panic(err)
-	}
+func openFixture(t *testing.T) []byte {
+	b := fixture.Bytes(t, 2021, 16)
 	b = bytes.TrimSuffix(b, []byte("\n"))
 	return b
 }
 
 func TestPart1(t *testing.T) {
-	b := mustOpenFixture("day16")
+	b := openFixture(t)
 	n := 0
 	tokens, err := Lex(b)
 	if err != nil {
@@ -36,7 +26,7 @@ func TestPart1(t *testing.T) {
 	for _, p := range tokens {
 		n += p.Version
 	}
-	AssertInt(t, 989, n, "bad version sum")
+	assert.Int(t, 989, n, "bad version sum")
 }
 
 func TestPart2(t *testing.T) {
@@ -77,7 +67,7 @@ func TestPart2(t *testing.T) {
 			Expect:  1,
 		},
 		{
-			Fixture: mustOpenFixture("day16"),
+			Fixture: openFixture(t),
 			Expect:  7936430475134,
 		},
 	}
@@ -90,7 +80,7 @@ func TestPart2(t *testing.T) {
 			}
 			v := expr.Eval()
 			t.Log(expr, "=", v)
-			AssertInt(t, test.Expect, v, "bad expression result")
+			assert.Int(t, test.Expect, v, "bad expression result")
 		})
 	}
 }

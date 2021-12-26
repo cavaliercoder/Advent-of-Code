@@ -1,4 +1,4 @@
-package aoc2021
+package assert
 
 import (
 	"bytes"
@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func AssertString(t *testing.T, expect, actual string, format string, a ...interface{}) bool {
+func String(t *testing.T, expect, actual string, format string, a ...interface{}) bool {
 	if actual == expect {
 		return true
 	}
@@ -15,7 +15,7 @@ func AssertString(t *testing.T, expect, actual string, format string, a ...inter
 	return false
 }
 
-func AssertInt(t *testing.T, expect, actual int, format string, a ...interface{}) bool {
+func Int(t *testing.T, expect, actual int, format string, a ...interface{}) bool {
 	if actual == expect {
 		return true
 	}
@@ -24,7 +24,7 @@ func AssertInt(t *testing.T, expect, actual int, format string, a ...interface{}
 	return false
 }
 
-func AssertInt64(t *testing.T, expect, actual int64, format string, a ...interface{}) bool {
+func Int64(t *testing.T, expect, actual int64, format string, a ...interface{}) bool {
 	if actual == expect {
 		return true
 	}
@@ -33,7 +33,7 @@ func AssertInt64(t *testing.T, expect, actual int64, format string, a ...interfa
 	return false
 }
 
-func AssertBool(t *testing.T, expect, actual bool, format string, a ...interface{}) bool {
+func Bool(t *testing.T, expect, actual bool, format string, a ...interface{}) bool {
 	if actual == expect {
 		return true
 	}
@@ -42,7 +42,7 @@ func AssertBool(t *testing.T, expect, actual bool, format string, a ...interface
 	return false
 }
 
-func AssertByte(t *testing.T, expect, actual byte, format string, a ...interface{}) bool {
+func Byte(t *testing.T, expect, actual byte, format string, a ...interface{}) bool {
 	if actual == expect {
 		return true
 	}
@@ -51,7 +51,7 @@ func AssertByte(t *testing.T, expect, actual byte, format string, a ...interface
 	return false
 }
 
-func AssertBytes(t *testing.T, expect, actual []byte, format string, a ...interface{}) bool {
+func Bytes(t *testing.T, expect, actual []byte, format string, a ...interface{}) bool {
 	if bytes.Equal(expect, actual) {
 		return true
 	}

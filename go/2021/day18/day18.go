@@ -150,29 +150,54 @@ func MaxMagnitude(A ...*Number) int {
 	return max
 }
 
-func Parse(b []byte) *Number {
-	c := &parser{
-		data: b,
-	}
-	return c.Parse()
+func Parse(b []byte) (n *Number, err error) {
+	c := &parser{data: b}
+	n = c.parse()
+	err = c.err
+	return
 }
 
 type parser struct {
 	data []byte
 	ptr  int
+	err  error
 }
 
-func (c *parser) Next() {
+func (c *parser) parse() *Number {
+	n := &Number{}
+	if c.isNumeric() {
+		for c.isNumeric() {
+			n.N *= 10
+			n.N += int(c.data[c.ptr] - '0')
+			c.next()
+		}
+		return n
+	}
+	c.expect('[')
+	n.L = c.parse()
+	c.expect(',')
+	n.R = c.parse()
+	c.expect(']')
+	return n
+}
+
+func (c *parser) next() {
 	if !c.EOF() {
 		c.ptr++
 	}
 }
 
-func (c *parser) Expect(b byte) {
-	if c.B() != b {
-		panic(fmt.Sprintf("expected: '%c', got '%c' at %d", b, c.B(), c.ptr))
+func (c *parser) setErr(err error) {
+	if c.err == nil {
+		c.err = err
 	}
-	c.Next()
+}
+
+func (c *parser) expect(b byte) {
+	if c.B() != b {
+		c.setErr(fmt.Errorf("expected: '%c', got '%c' at %d", b, c.B(), c.ptr))
+	}
+	c.next()
 }
 
 func (c *parser) EOF() bool { return c.ptr >= len(c.data) }
@@ -184,27 +209,9 @@ func (c *parser) B() byte {
 	return c.data[c.ptr]
 }
 
-func (c *parser) IsNumeric() bool {
+func (c *parser) isNumeric() bool {
 	if c.EOF() {
 		return false
 	}
 	return c.B() >= '0' && c.B() <= '9'
-}
-
-func (c *parser) Parse() *Number {
-	n := &Number{}
-	if c.IsNumeric() {
-		for c.IsNumeric() {
-			n.N *= 10
-			n.N += int(c.data[c.ptr] - '0')
-			c.Next()
-		}
-		return n
-	}
-	c.Expect('[')
-	n.L = c.Parse()
-	c.Expect(',')
-	n.R = c.Parse()
-	c.Expect(']')
-	return n
 }

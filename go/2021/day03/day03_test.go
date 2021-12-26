@@ -1,31 +1,24 @@
 package day03
 
 import (
-	"aoc2021"
-	"bufio"
 	"testing"
+
+	"aoc/internal/assert"
+	"aoc/internal/fixture"
 )
 
-func mustOpenFixture(name string) []int {
-	f, err := aoc2021.OpenFixture(name)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
+func openFixture(t *testing.T) []int {
 	a := make([]int, 0, 64)
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		a = append(a, Parse(scanner.Bytes()))
-	}
-	if err := scanner.Err(); err != nil {
-		panic(err)
-	}
+	fixture.ScanBytes(t, 2021, 3, func(b []byte) error {
+		a = append(a, Parse(b))
+		return nil
+	})
 	return a
 }
 
 func TestPart1(t *testing.T) {
-	a := mustOpenFixture("day03")
-	aoc2021.AssertInt(
+	a := openFixture(t)
+	assert.Int(
 		t,
 		3969000,
 		PowerConsumptionRate(a...),
@@ -34,8 +27,8 @@ func TestPart1(t *testing.T) {
 }
 
 func TestPart2(t *testing.T) {
-	a := mustOpenFixture("day03")
-	aoc2021.AssertInt(
+	a := openFixture(t)
+	assert.Int(
 		t,
 		4267809,
 		LifeSupportRating(a...),

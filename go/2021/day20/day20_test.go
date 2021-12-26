@@ -4,11 +4,13 @@ import (
 	"bufio"
 	"testing"
 
-	. "aoc2021"
+	"aoc/internal/assert"
+	"aoc/internal/fixture"
+	"aoc/internal/geo"
 )
 
-func mustReadFixture(name string) (algo []byte, state *State) {
-	f := MustOpenFixture(name)
+func openFixture(t *testing.T) (algo []byte, state *State) {
+	f := fixture.Open(t, 2021, 20)
 	defer f.Close()
 	scanner := bufio.NewScanner(f)
 	if scanner.Scan() {
@@ -34,7 +36,7 @@ func mustReadFixture(name string) (algo []byte, state *State) {
 			case '.':
 				continue
 			case '#':
-				state.Set(Pos{X: x, Y: y})
+				state.Set(geo.Pos{X: x, Y: y})
 			default:
 				panic(c)
 			}
@@ -48,19 +50,19 @@ func mustReadFixture(name string) (algo []byte, state *State) {
 }
 
 func TestPart1(t *testing.T) {
-	algo, state := mustReadFixture("day20")
+	algo, state := openFixture(t)
 	for i := 0; i < 2; i++ {
 		state = state.Step(algo)
 	}
 	t.Log(state)
-	AssertInt(t, 5291, state.LitCount(), "bad lit count")
+	assert.Int(t, 5291, state.LitCount(), "bad lit count")
 }
 
 func TestPart2(t *testing.T) {
-	algo, state := mustReadFixture("day20")
+	algo, state := openFixture(t)
 	for i := 0; i < 50; i++ {
 		state = state.Step(algo)
 	}
 	t.Log(state)
-	AssertInt(t, 16665, state.LitCount(), "bad lit count")
+	assert.Int(t, 16665, state.LitCount(), "bad lit count")
 }

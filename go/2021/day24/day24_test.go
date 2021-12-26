@@ -1,45 +1,30 @@
 package day24
 
 import (
-	"bufio"
 	"fmt"
-	"io"
 	"strconv"
 	"strings"
 	"testing"
 
-	. "aoc2021"
+	"aoc/internal/assert"
+	"aoc/internal/fixture"
 )
 
-func mustOpenFixture(name string) *ALU {
-	f := MustOpenFixture(name)
-	defer f.Close()
-	data, err := readProgram(f)
-	if err != nil {
-		panic(err)
-	}
-	return NewALU(data)
-}
-
-func readProgram(r io.Reader) (program []Instruction, err error) {
-	program = make([]Instruction, 0, 64)
-	scanner := bufio.NewScanner(r)
-	for scanner.Scan() {
-		s := scanner.Text()
+func openFixture(t *testing.T) *ALU {
+	data := make([]Instruction, 0, 64)
+	fixture.ScanStrings(t, 2021, 24, func(s string) error {
 		if strings.HasPrefix(s, "#") {
-			continue
+			return nil
 		}
 		var ins Instruction
-		ins, err = parseInstruction(scanner.Text())
+		ins, err := parseInstruction(s)
 		if err != nil {
-			return
+			return err
 		}
-		program = append(program, ins)
-	}
-	if err = scanner.Err(); err != nil {
-		return
-	}
-	return
+		data = append(data, ins)
+		return nil
+	})
+	return NewALU(data)
 }
 
 func parseInstruction(s string) (ins Instruction, err error) {
@@ -82,14 +67,14 @@ func parseInstruction(s string) (ins Instruction, err error) {
 
 func TestPart1(t *testing.T) {
 	// see constraints in Reimp
-	c := mustOpenFixture("day24")
-	AssertBool(t, true, c.Run(99911993949684), "bad model number")
-	AssertBool(t, true, Reimp(99911993949684), "bad model number")
+	c := openFixture(t)
+	assert.Bool(t, true, c.Run(99911993949684), "bad model number")
+	assert.Bool(t, true, Reimp(99911993949684), "bad model number")
 }
 
 func TestPart2(t *testing.T) {
-	c := mustOpenFixture("day24")
+	c := openFixture(t)
 	// see constraints in Reimp
-	AssertBool(t, true, c.Run(uint64(62911941716111)), "bad model number")
-	AssertBool(t, true, Reimp(62911941716111), "bad model number")
+	assert.Bool(t, true, c.Run(uint64(62911941716111)), "bad model number")
+	assert.Bool(t, true, Reimp(62911941716111), "bad model number")
 }

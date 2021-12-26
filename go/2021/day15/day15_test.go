@@ -3,16 +3,13 @@ package day15
 import (
 	"testing"
 
-	. "aoc2021"
+	"aoc/internal/assert"
+	"aoc/internal/fixture"
+	"aoc/internal/geo"
 )
 
-func mustOpenFixture(name string) *Grid {
-	f := MustOpenFixture(name)
-	defer f.Close()
-	g, err := ReadGrid(f)
-	if err != nil {
-		panic(err)
-	}
+func openFixture(t *testing.T) *geo.Grid {
+	g := fixture.Grid(t, 2021, 15)
 	for i, c := range g.Data {
 		g.Data[i] = c - '0'
 	}
@@ -20,12 +17,12 @@ func mustOpenFixture(name string) *Grid {
 }
 
 func TestPart1(t *testing.T) {
-	g := mustOpenFixture("day15")
-	AssertInt(t, 621, ShortestPath(g, 0, g.Len()-1), "bad shortest path")
+	g := openFixture(t)
+	assert.Int(t, 621, ShortestPath(g, 0, g.Len()-1), "bad shortest path")
 }
 
 func TestPart2(t *testing.T) {
-	g := mustOpenFixture("day15")
+	g := openFixture(t)
 	g = GrowGrid(g)
-	AssertInt(t, 2904, ShortestPath(g, 0, g.Len()-1), "bad shortest path")
+	assert.Int(t, 2904, ShortestPath(g, 0, g.Len()-1), "bad shortest path")
 }

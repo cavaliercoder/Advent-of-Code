@@ -1,28 +1,21 @@
 package day07
 
 import (
-	"fmt"
-	"io/ioutil"
 	"strconv"
 	"strings"
 	"testing"
 
-	"aoc2021"
+	"aoc/internal/assert"
+	"aoc/internal/fixture"
 )
 
-func mustOpenFixture(name string) []int {
-	f := aoc2021.MustOpenFixture(name)
-	defer f.Close()
-	b, err := ioutil.ReadAll(f)
-	if err != nil {
-		panic(err)
-	}
-	parts := strings.Split(strings.TrimSpace(string(b)), ",")
+func openFixture(t *testing.T) []int {
+	parts := strings.Split(strings.TrimSpace(fixture.String(t, 2021, 7)), ",")
 	a := make([]int, 0, len(parts))
 	for _, s := range parts {
 		n, err := strconv.Atoi(s)
 		if err != nil {
-			panic(fmt.Sprintf("bad x-position: %s", s))
+			t.Fatalf("bad x-position: %s", s)
 		}
 		a = append(a, int(n))
 	}
@@ -30,14 +23,14 @@ func mustOpenFixture(name string) []int {
 }
 
 func TestPart1(t *testing.T) {
-	aoc2021.AssertInt(
+	assert.Int(
 		t,
 		37,
 		AlignCrabmarines(16, 1, 2, 0, 4, 2, 7, 1, 2, 14),
 		"bad fuel count",
 	)
-	positions := mustOpenFixture("day07")
-	aoc2021.AssertInt(
+	positions := openFixture(t)
+	assert.Int(
 		t,
 		336721,
 		AlignCrabmarines(positions...),
@@ -46,14 +39,14 @@ func TestPart1(t *testing.T) {
 }
 
 func TestPart2(t *testing.T) {
-	aoc2021.AssertInt(
+	assert.Int(
 		t,
 		168,
 		AlignCrabmarinesProper(16, 1, 2, 0, 4, 2, 7, 1, 2, 14),
 		"bad fuel count",
 	)
-	positions := mustOpenFixture("day07")
-	aoc2021.AssertInt(
+	positions := openFixture(t)
+	assert.Int(
 		t,
 		91638945,
 		AlignCrabmarinesProper(positions...),

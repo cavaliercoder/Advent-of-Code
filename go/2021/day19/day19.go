@@ -3,7 +3,7 @@ package day19
 import (
 	"fmt"
 
-	. "aoc2021"
+	"aoc/internal/util"
 )
 
 // Tranform is a 3D rotation matrix.
@@ -72,7 +72,7 @@ func (c Coord) Transform(t Transform) Coord {
 }
 
 func (c Coord) Manhattan() int {
-	return Abs(c.X) + Abs(c.Y) + Abs(c.Z)
+	return util.Abs(c.X) + util.Abs(c.Y) + util.Abs(c.Z)
 }
 
 func (c Coord) String() string {

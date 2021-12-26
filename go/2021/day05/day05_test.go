@@ -1,11 +1,11 @@
 package day05
 
 import (
-	"bufio"
 	"fmt"
 	"testing"
 
-	"aoc2021"
+	"aoc/internal/assert"
+	"aoc/internal/fixture"
 )
 
 func parseVent(s string) (*Vent, error) {
@@ -20,34 +20,25 @@ func parseVent(s string) (*Vent, error) {
 	return &v, nil
 }
 
-func mustOpenFixture(name string) []*Vent {
-	f, err := aoc2021.OpenFixture(name)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
+func openFixture(t *testing.T) []*Vent {
 	vents := make([]*Vent, 0, 64)
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		s := scanner.Text()
+	fixture.ScanStrings(t, 2021, 5, func(s string) error {
 		if s == "" {
-			continue
+			return nil
 		}
 		vent, err := parseVent(s)
 		if err != nil {
-			panic(err)
+			return err
 		}
 		vents = append(vents, vent)
-	}
-	if err := scanner.Err(); err != nil {
-		panic(err)
-	}
+		return nil
+	})
 	return vents
 }
 
 func TestPart1(t *testing.T) {
-	vents := mustOpenFixture("day05")
-	aoc2021.AssertInt(
+	vents := openFixture(t)
+	assert.Int(
 		t,
 		6397,
 		CountIntersects(false, vents...),
@@ -56,8 +47,8 @@ func TestPart1(t *testing.T) {
 }
 
 func TestPart2(t *testing.T) {
-	vents := mustOpenFixture("day05")
-	aoc2021.AssertInt(
+	vents := openFixture(t)
+	assert.Int(
 		t,
 		22335,
 		CountIntersects(true, vents...),

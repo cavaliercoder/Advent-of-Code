@@ -1,12 +1,12 @@
 package day22
 
 import (
-	"bufio"
 	"fmt"
 	"strings"
 	"testing"
 
-	. "aoc2021"
+	"aoc/internal/assert"
+	"aoc/internal/fixture"
 )
 
 func parseOp(s string) (op Op, err error) {
@@ -43,32 +43,27 @@ func parseCube(s string) (Cube, error) {
 	return c, nil
 }
 
-func mustOpenFixture(name string) []Op {
-	f := MustOpenFixture(name)
-	defer f.Close()
+func openFixture(t *testing.T) []Op {
 	a := make([]Op, 0, 64)
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		op, err := parseOp(scanner.Text())
+	fixture.ScanStrings(t, 2021, 22, func(s string) error {
+		op, err := parseOp(s)
 		if err != nil {
-			panic(err)
+			return err
 		}
 		a = append(a, op)
-	}
-	if err := scanner.Err(); err != nil {
-		panic(err)
-	}
+		return nil
+	})
 	return a
 }
 
 func TestPart1(t *testing.T) {
-	ops := mustOpenFixture("day22")
+	ops := openFixture(t)
 	r := NewReactor()
-	AssertInt(t, 612714, r.Init(ops...), "bad init count")
+	assert.Int(t, 612714, r.Init(ops...), "bad init count")
 }
 
 func TestPart2(t *testing.T) {
-	ops := mustOpenFixture("day22")
+	ops := openFixture(t)
 	r := NewReactor()
-	AssertInt(t, 1311612259117092, r.Reboot(ops...), "bad reboot count")
+	assert.Int(t, 1311612259117092, r.Reboot(ops...), "bad reboot count")
 }

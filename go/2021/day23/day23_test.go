@@ -3,7 +3,7 @@ package day23
 import (
 	"testing"
 
-	. "aoc2021"
+	"aoc/internal/assert"
 )
 
 var (
@@ -18,13 +18,13 @@ var (
 )
 
 func TestExample(t *testing.T) {
-	AssertInt(
+	assert.Int(
 		t,
 		12521,
 		ExampleFixture1.Organize(TargetState1),
 		"bad energy cost",
 	)
-	AssertInt(
+	assert.Int(
 		t,
 		44169,
 		ExampleFixture2.Organize(TargetState2),
@@ -33,7 +33,7 @@ func TestExample(t *testing.T) {
 }
 
 func TestPart1(t *testing.T) {
-	AssertInt(
+	assert.Int(
 		t,
 		16489,
 		TestFixture1.Organize(TargetState1),
@@ -42,7 +42,7 @@ func TestPart1(t *testing.T) {
 }
 
 func TestPart2(t *testing.T) {
-	AssertInt(
+	assert.Int(
 		t,
 		43413,
 		TestFixture2.Organize(TargetState2),

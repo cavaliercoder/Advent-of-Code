@@ -1,8 +1,8 @@
 package day11
 
-import . "aoc2021"
+import "aoc/internal/geo"
 
-func Step(g *Grid) (flashes int) {
+func Step(g *geo.Grid) (flashes int) {
 	stack := make([]int, 0, 64)
 	for i, c := range g.Data {
 		if c == 9 {
@@ -37,8 +37,8 @@ func Step(g *Grid) (flashes int) {
 	return
 }
 
-func GetSyncSteps(g *Grid) (steps int) {
-	isSynced := func(g *Grid) bool {
+func GetSyncSteps(g *geo.Grid) (steps int) {
+	isSynced := func(g *geo.Grid) bool {
 		for _, c := range g.Data {
 			if c != 0 {
 				return false

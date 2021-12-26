@@ -1,13 +1,11 @@
 package day09
 
-import (
-	. "aoc2021"
-)
+import "aoc/internal/geo"
 
-func IsLowPoint(g *Grid, i int) bool {
+func IsLowPoint(g *geo.Grid, i int) bool {
 	v := g.Data[i]
 	p := g.Pos(i)
-	for _, adj := range []Pos{PosUp, PosRight, PosDown, PosLeft} {
+	for _, adj := range []geo.Pos{geo.PosUp, geo.PosRight, geo.PosDown, geo.PosLeft} {
 		if neighbor, ok := g.Get(p.Add(adj)); ok {
 			if neighbor <= v {
 				return false
@@ -17,7 +15,7 @@ func IsLowPoint(g *Grid, i int) bool {
 	return true
 }
 
-func SumRisk(g *Grid) int {
+func SumRisk(g *geo.Grid) int {
 	risk := 0
 	for i, v := range g.Data {
 		if IsLowPoint(g, i) {
@@ -27,14 +25,14 @@ func SumRisk(g *Grid) int {
 	return risk
 }
 
-func GetBasinSize(g *Grid, i int) int {
+func GetBasinSize(g *geo.Grid, i int) int {
 	if !IsLowPoint(g, i) {
 		return 0
 	}
 	p := g.Pos(i)
 	size := 0
-	seen := make(map[Pos]struct{})
-	stack := make([]Pos, 0, 32)
+	seen := make(map[geo.Pos]struct{})
+	stack := make([]geo.Pos, 0, 32)
 	stack = append(stack, p)
 	for len(stack) > 0 {
 		p := stack[len(stack)-1]
@@ -49,16 +47,16 @@ func GetBasinSize(g *Grid, i int) int {
 		size++
 		stack = append(
 			stack,
-			p.Add(PosUp),
-			p.Add(PosRight),
-			p.Add(PosDown),
-			p.Add(PosLeft),
+			p.Add(geo.PosUp),
+			p.Add(geo.PosRight),
+			p.Add(geo.PosDown),
+			p.Add(geo.PosLeft),
 		)
 	}
 	return size
 }
 
-func GetBasinSizes(g *Grid) []int {
+func GetBasinSizes(g *geo.Grid) []int {
 	a := make([]int, 0, 64)
 	for i := range g.Data {
 		if IsLowPoint(g, i) {

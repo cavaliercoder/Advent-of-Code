@@ -1,25 +1,31 @@
 package day18
 
 import (
-	"bufio"
 	"fmt"
 	"testing"
 
-	. "aoc2021"
+	"aoc/internal/assert"
+	"aoc/internal/fixture"
 )
 
-func mustOpenFixture(name string) []*Number {
-	f := MustOpenFixture(name)
-	defer f.Close()
+func mustParse(t *testing.T, b []byte) *Number {
+	n, err := Parse(b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return n
+}
+
+func openFixture(t *testing.T) []*Number {
 	a := make([]*Number, 0, 64)
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		s := scanner.Bytes()
-		a = append(a, Parse(s))
-	}
-	if err := scanner.Err(); err != nil {
-		panic(err)
-	}
+	fixture.ScanBytes(t, 2021, 18, func(b []byte) (err error) {
+		n, err := Parse(b)
+		if err != nil {
+			return err
+		}
+		a = append(a, n)
+		return
+	})
 	return a
 }
 
@@ -38,8 +44,8 @@ func TestParser(t *testing.T) {
 	}
 	for i, test := range tests {
 		t.Run(fmt.Sprintf("%02d", i+1), func(t *testing.T) {
-			n := Parse([]byte(test))
-			AssertString(t, test, n.String(), "bad parser output")
+			n := mustParse(t, []byte(test))
+			assert.String(t, test, n.String(), "bad parser output")
 		})
 	}
 }
@@ -53,9 +59,9 @@ func TestExplode(t *testing.T) {
 		"[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]":     "[[3,[2,[8,0]]],[9,[5,[7,0]]]]",
 	}
 	for input, expect := range tests {
-		n := Parse([]byte(input))
+		n := mustParse(t, []byte(input))
 		n.explode(0, nil, nil)
-		AssertString(t, expect, n.String(), "bad reduction")
+		assert.String(t, expect, n.String(), "bad reduction")
 	}
 }
 
@@ -65,17 +71,17 @@ func TestSplit(t *testing.T) {
 		"[[[[0,7],4],[[7,8],[0,13]]],[1,1]]": "[[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]",
 	}
 	for input, expect := range tests {
-		n := Parse([]byte(input))
+		n := mustParse(t, []byte(input))
 		n.split()
-		AssertString(t, expect, n.String(), "bad split")
+		assert.String(t, expect, n.String(), "bad split")
 	}
 }
 
 func TestAdd(t *testing.T) {
-	a := Parse([]byte("[[[[4,3],4],4],[7,[[8,4],9]]]"))
-	b := Parse([]byte("[1,1]"))
+	a := mustParse(t, []byte("[[[[4,3],4],4],[7,[[8,4],9]]]"))
+	b := mustParse(t, []byte("[1,1]"))
 	v := Add(a, b)
-	AssertString(
+	assert.String(
 		t,
 		"[[[[0,7],4],[[7,8],[6,0]]],[8,1]]",
 		v.String(),
@@ -85,26 +91,26 @@ func TestAdd(t *testing.T) {
 
 func TestMaxMagnitude(t *testing.T) {
 	A := []*Number{
-		Parse([]byte("[[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]")),
-		Parse([]byte("[[[5,[2,8]],4],[5,[[9,9],0]]]")),
-		Parse([]byte("[6,[[[6,2],[5,6]],[[7,6],[4,7]]]]")),
-		Parse([]byte("[[[6,[0,7]],[0,9]],[4,[9,[9,0]]]]")),
-		Parse([]byte("[[[7,[6,4]],[3,[1,3]]],[[[5,5],1],9]]")),
-		Parse([]byte("[[6,[[7,3],[3,2]]],[[[3,8],[5,7]],4]]")),
-		Parse([]byte("[[[[5,4],[7,7]],8],[[8,3],8]]")),
-		Parse([]byte("[[9,3],[[9,9],[6,[4,9]]]]")),
-		Parse([]byte("[[2,[[7,7],7]],[[5,8],[[9,3],[0,2]]]]")),
-		Parse([]byte("[[[[5,2],5],[8,[3,7]]],[[5,[7,5]],[4,4]]]")),
+		mustParse(t, []byte("[[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]")),
+		mustParse(t, []byte("[[[5,[2,8]],4],[5,[[9,9],0]]]")),
+		mustParse(t, []byte("[6,[[[6,2],[5,6]],[[7,6],[4,7]]]]")),
+		mustParse(t, []byte("[[[6,[0,7]],[0,9]],[4,[9,[9,0]]]]")),
+		mustParse(t, []byte("[[[7,[6,4]],[3,[1,3]]],[[[5,5],1],9]]")),
+		mustParse(t, []byte("[[6,[[7,3],[3,2]]],[[[3,8],[5,7]],4]]")),
+		mustParse(t, []byte("[[[[5,4],[7,7]],8],[[8,3],8]]")),
+		mustParse(t, []byte("[[9,3],[[9,9],[6,[4,9]]]]")),
+		mustParse(t, []byte("[[2,[[7,7],7]],[[5,8],[[9,3],[0,2]]]]")),
+		mustParse(t, []byte("[[[[5,2],5],[8,[3,7]]],[[5,[7,5]],[4,4]]]")),
 	}
-	AssertInt(t, 3993, MaxMagnitude(A...), "bad maximum magnitude")
+	assert.Int(t, 3993, MaxMagnitude(A...), "bad maximum magnitude")
 }
 
 func TestPart1(t *testing.T) {
-	a := mustOpenFixture("day18")
-	AssertInt(t, 3524, Add(a...).M(), "bad magnitude")
+	a := openFixture(t)
+	assert.Int(t, 3524, Add(a...).M(), "bad magnitude")
 }
 
 func TestPart2(t *testing.T) {
-	a := mustOpenFixture("day18")
-	AssertInt(t, 4656, MaxMagnitude(a...), "bad maximum magnitude")
+	a := openFixture(t)
+	assert.Int(t, 4656, MaxMagnitude(a...), "bad maximum magnitude")
 }

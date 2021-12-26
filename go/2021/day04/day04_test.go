@@ -8,7 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"aoc2021"
+	"aoc/internal/assert"
+	"aoc/internal/fixture"
 )
 
 func parseCalls(r *bufio.Reader) ([]int, error) {
@@ -58,16 +59,13 @@ func parseBoard(r *bufio.Reader) (*Board, error) {
 	return board, nil
 }
 
-func mustOpenFixture(name string) (calls []int, boards []*Board) {
-	f, err := aoc2021.OpenFixture(name)
-	if err != nil {
-		panic(err)
-	}
+func openFixture(t *testing.T) (calls []int, boards []*Board) {
+	f := fixture.Open(t, 2021, 4)
 	defer f.Close()
 	r := bufio.NewReader(f)
-	calls, err = parseCalls(r)
+	calls, err := parseCalls(r)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 	boards = make([]*Board, 0, 64)
 	for {
@@ -76,18 +74,18 @@ func mustOpenFixture(name string) (calls []int, boards []*Board) {
 			return
 		}
 		if err != nil {
-			panic(err)
+			t.Fatal(err)
 		}
 		boards = append(boards, board)
 	}
 }
 
 func TestPart1(t *testing.T) {
-	calls, boards := mustOpenFixture("day04")
+	calls, boards := openFixture(t)
 	for _, call := range calls {
 		for _, board := range boards {
 			if board.Call(call) {
-				aoc2021.AssertInt(t, 64084, call*board.Score(), "bad score")
+				assert.Int(t, 64084, call*board.Score(), "bad score")
 				return
 			}
 		}
@@ -98,7 +96,7 @@ func TestPart1(t *testing.T) {
 func TestPart2(t *testing.T) {
 	var lastBoard *Board
 	var lastCall int
-	calls, boards := mustOpenFixture("day04")
+	calls, boards := openFixture(t)
 	for _, call := range calls {
 		for i, board := range boards {
 			if board == nil {
@@ -111,5 +109,5 @@ func TestPart2(t *testing.T) {
 			}
 		}
 	}
-	aoc2021.AssertInt(t, 12833, lastCall*lastBoard.Score(), "bad score")
+	assert.Int(t, 12833, lastCall*lastBoard.Score(), "bad score")
 }

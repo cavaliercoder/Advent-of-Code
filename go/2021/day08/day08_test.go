@@ -1,20 +1,21 @@
 package day08
 
 import (
-	"aoc2021"
-	"bufio"
 	"fmt"
 	"strings"
 	"testing"
+
+	"aoc/internal/assert"
+	"aoc/internal/fixture"
 )
 
-type fixture struct {
+type Sample struct {
 	Patterns [10]Display
 	Output   [4]Display
 }
 
-func parseFixture(s string) (*fixture, error) {
-	c := &fixture{}
+func parseFixture(s string) (*Sample, error) {
+	c := &Sample{}
 	parts := strings.Split(s, " ")
 	if len(parts) != 15 {
 		return nil, fmt.Errorf("bad fixture: %s", s)
@@ -36,31 +37,22 @@ func parseFixture(s string) (*fixture, error) {
 	return c, nil
 }
 
-func mustOpenFixture(name string) []*fixture {
-	f, err := aoc2021.OpenFixture(name)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	a := make([]*fixture, 0, 64)
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		s := scanner.Text()
+func openFixture(t *testing.T) []*Sample {
+	a := make([]*Sample, 0, 64)
+	fixture.ScanStrings(t, 2021, 8, func(s string) error {
 		v, err := parseFixture(s)
 		if err != nil {
-			panic(err)
+			return err
 		}
 		a = append(a, v)
-	}
-	if err := scanner.Err(); err != nil {
-		panic(err)
-	}
+		return nil
+	})
 	return a
 }
 
 func TestPart1(t *testing.T) {
 	count := 0
-	tests := mustOpenFixture("day08")
+	tests := openFixture(t)
 	for _, test := range tests {
 		for _, output := range test.Output {
 			switch output.SegmentCount() {
@@ -69,15 +61,15 @@ func TestPart1(t *testing.T) {
 			}
 		}
 	}
-	aoc2021.AssertInt(t, 284, count, "bad value count")
+	assert.Int(t, 284, count, "bad value count")
 }
 
 func TestPart2(t *testing.T) {
 	sum := 0
-	tests := mustOpenFixture("day08")
+	tests := openFixture(t)
 	for _, test := range tests {
 		cipher := Rewire(test.Patterns)
 		sum += Decode(cipher, test.Output[:]...)
 	}
-	aoc2021.AssertInt(t, 973499, sum, "bad display sum")
+	assert.Int(t, 973499, sum, "bad display sum")
 }

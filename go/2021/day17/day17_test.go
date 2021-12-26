@@ -3,18 +3,19 @@ package day17
 import (
 	"testing"
 
-	. "aoc2021"
+	"aoc/internal/assert"
+	"aoc/internal/geo"
 )
 
-var FixtureExample = Rect{
-	A: Pos{X: 20, Y: -5},
-	B: Pos{X: 30, Y: -10},
+var FixtureExample = geo.Rect{
+	A: geo.Pos{X: 20, Y: -5},
+	B: geo.Pos{X: 30, Y: -10},
 }
 
 // From day17.txt
-var FixtureInput = Rect{
-	A: Pos{X: 235, Y: -62},
-	B: Pos{X: 259, Y: -118},
+var FixtureInput = geo.Rect{
+	A: geo.Pos{X: 235, Y: -62},
+	B: geo.Pos{X: 259, Y: -118},
 }
 
 func TestVelocityWithLimit(t *testing.T) {
@@ -32,16 +33,16 @@ func TestVelocityWithLimit(t *testing.T) {
 			x += Δx
 			Δx--
 		}
-		AssertInt(t, lim, x, "bad final x position")
+		assert.Int(t, lim, x, "bad final x position")
 
 		// ensure we can solve back to the same initial velocity
-		AssertInt(t, u, VelocityWithLimit(lim), "bad initial velocity from limit")
+		assert.Int(t, u, VelocityWithLimit(lim), "bad initial velocity from limit")
 	}
 }
 
 func TestExample(t *testing.T) {
-	AssertInt(t, 45, TrickShot(FixtureExample), "bad azimuth")
-	AssertInt(
+	assert.Int(t, 45, TrickShot(FixtureExample), "bad azimuth")
+	assert.Int(
 		t,
 		112,
 		len(EnumerateTrajectories(FixtureExample)),
@@ -50,11 +51,11 @@ func TestExample(t *testing.T) {
 }
 
 func TestPart1(t *testing.T) {
-	AssertInt(t, 6903, TrickShot(FixtureInput), "bad azimuth")
+	assert.Int(t, 6903, TrickShot(FixtureInput), "bad azimuth")
 }
 
 func TestPart2(t *testing.T) {
-	AssertInt(
+	assert.Int(
 		t,
 		2351,
 		len(EnumerateTrajectories(FixtureInput)),

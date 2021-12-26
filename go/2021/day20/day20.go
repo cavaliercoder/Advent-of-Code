@@ -5,27 +5,27 @@ import (
 	"fmt"
 	"io"
 
-	. "aoc2021"
+	"aoc/internal/geo"
 )
 
 type State struct {
-	m        map[Pos]byte
+	m        map[geo.Pos]byte
 	infinity byte
-	bounds   Rect
+	bounds   geo.Rect
 }
 
 func NewState() *State {
 	return &State{
-		m: make(map[Pos]byte, 4096),
+		m: make(map[geo.Pos]byte, 4096),
 	}
 }
 
-func (c *State) Set(p Pos) {
+func (c *State) Set(p geo.Pos) {
 	c.m[p] = 1
 	c.bounds = c.bounds.Fit(p)
 }
 
-func (c *State) Get(p Pos) byte {
+func (c *State) Get(p geo.Pos) byte {
 	if c.bounds.Contains(p) {
 		return c.m[p]
 	}
@@ -36,7 +36,7 @@ func (c *State) Format(w io.Writer) {
 	r := c.bounds.Expand(3)
 	for y := r.A.Y; y >= r.B.Y; y-- {
 		for x := r.A.X; x <= r.B.X; x++ {
-			b := c.Get(Pos{X: x, Y: y})
+			b := c.Get(geo.Pos{X: x, Y: y})
 			switch b {
 			case 0:
 				fmt.Fprint(w, ".")
@@ -54,7 +54,7 @@ func (c *State) String() string {
 	return b.String()
 }
 
-var paramBounds = []Pos{
+var paramBounds = []geo.Pos{
 	{X: -1, Y: 1},
 	{X: 0, Y: 1},
 	{X: 1, Y: 1},
@@ -66,7 +66,7 @@ var paramBounds = []Pos{
 	{X: 1, Y: -1},
 }
 
-func (c *State) nextPixel(p Pos, algo []byte) byte {
+func (c *State) nextPixel(p geo.Pos, algo []byte) byte {
 	n := 0
 	for _, offset := range paramBounds {
 		n <<= 1

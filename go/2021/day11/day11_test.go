@@ -3,16 +3,13 @@ package day11
 import (
 	"testing"
 
-	. "aoc2021"
+	"aoc/internal/assert"
+	"aoc/internal/fixture"
+	"aoc/internal/geo"
 )
 
-func mustOpenFixture(name string) *Grid {
-	f := MustOpenFixture(name)
-	defer f.Close()
-	g, err := ReadGrid(f)
-	if err != nil {
-		panic(err)
-	}
+func openFixture(t *testing.T) *geo.Grid {
+	g := fixture.Grid(t, 2021, 11)
 	for i, c := range g.Data {
 		g.Data[i] = c - '0'
 	}
@@ -21,15 +18,15 @@ func mustOpenFixture(name string) *Grid {
 
 func TestPart1(t *testing.T) {
 	flashes := 0
-	g := mustOpenFixture("day11")
+	g := openFixture(t)
 	for i := 0; i < 100; i++ {
 		flashes += Step(g)
 	}
-	AssertInt(t, 1755, flashes, "bad flash count")
+	assert.Int(t, 1755, flashes, "bad flash count")
 }
 
 func TestPart2(t *testing.T) {
-	g := mustOpenFixture("day11")
+	g := openFixture(t)
 	steps := GetSyncSteps(g)
-	AssertInt(t, 212, steps, "bad step count")
+	assert.Int(t, 212, steps, "bad step count")
 }

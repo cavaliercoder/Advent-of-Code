@@ -7,7 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	. "aoc2021"
+	"aoc/internal/assert"
+	"aoc/internal/fixture"
 )
 
 func parseGraph(r io.Reader) (map[string][]string, error) {
@@ -35,8 +36,8 @@ func parseGraph(r io.Reader) (map[string][]string, error) {
 	return m, nil
 }
 
-func mustOpenFixture(name string) map[string][]string {
-	f := MustOpenFixture(name)
+func openFixture(t *testing.T) map[string][]string {
+	f := fixture.Open(t, 2021, 12)
 	defer f.Close()
 	m, err := parseGraph(f)
 	if err != nil {
@@ -46,10 +47,10 @@ func mustOpenFixture(name string) map[string][]string {
 }
 
 func TestPart1(t *testing.T) {
-	m := mustOpenFixture("day12")
-	AssertInt(t, 5076, CountPaths1(m), "bad path count")
+	m := openFixture(t)
+	assert.Int(t, 5076, CountPaths1(m), "bad path count")
 }
 func TestPart2(t *testing.T) {
-	m := mustOpenFixture("day12")
-	AssertInt(t, 145643, CountPaths2(m), "bad path count")
+	m := openFixture(t)
+	assert.Int(t, 145643, CountPaths2(m), "bad path count")
 }

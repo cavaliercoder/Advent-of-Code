@@ -1,22 +1,16 @@
 package day09
 
 import (
+	"aoc/internal/geo"
 	"sort"
 	"testing"
 
-	. "aoc2021"
+	"aoc/internal/assert"
+	"aoc/internal/fixture"
 )
 
-func mustOpenFixture(name string) *Grid {
-	f, err := OpenFixture(name)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	g, err := ReadGrid(f)
-	if err != nil {
-		panic(err)
-	}
+func openFixture(t *testing.T) *geo.Grid {
+	g := fixture.Grid(t, 2021, 9)
 	for i, b := range g.Data {
 		g.Data[i] = b - '0'
 	}
@@ -24,12 +18,12 @@ func mustOpenFixture(name string) *Grid {
 }
 
 func TestPart1(t *testing.T) {
-	AssertInt(t, 436, SumRisk(mustOpenFixture("day09")), "bad risk sum")
+	assert.Int(t, 436, SumRisk(openFixture(t)), "bad risk sum")
 }
 
 func TestPart2(t *testing.T) {
-	a := GetBasinSizes(mustOpenFixture("day09"))
+	a := GetBasinSizes(openFixture(t))
 	sort.Ints(a)
 	sum := a[len(a)-3] * a[len(a)-2] * a[len(a)-1]
-	AssertInt(t, 1317792, sum, "bad basin product")
+	assert.Int(t, 1317792, sum, "bad basin product")
 }
