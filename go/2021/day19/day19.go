@@ -1,35 +1,29 @@
 package day19
 
 import (
-	"fmt"
+	"math/rand"
 
 	"aoc/internal/geo3d"
 )
 
 type Scanner struct {
 	Position geo3d.Pos
-	Beacons  map[geo3d.Pos]struct{}
+	Beacons  []geo3d.Pos
 
 	rotations []*Scanner
-	moves     map[geo3d.Pos]*Scanner
-	noFit     map[geo3d.Pos]struct{}
 }
 
 func NewScanner(position geo3d.Pos, beacons ...geo3d.Pos) *Scanner {
 	v := &Scanner{
 		Position: position,
-		Beacons:  make(map[geo3d.Pos]struct{}, 32),
-		moves:    make(map[geo3d.Pos]*Scanner),
-		noFit:    make(map[geo3d.Pos]struct{}),
+		Beacons:  make([]geo3d.Pos, 0, 32),
 	}
 	v.Add(beacons...)
 	return v
 }
 
 func (c *Scanner) Add(beacons ...geo3d.Pos) {
-	for _, obj := range beacons {
-		c.Beacons[obj] = struct{}{}
-	}
+	c.Beacons = append(c.Beacons, beacons...)
 }
 
 func (c *Scanner) IsInRange(p geo3d.Pos) bool {
@@ -47,14 +41,18 @@ func (c *Scanner) IsInRange(p geo3d.Pos) bool {
 }
 
 func (c *Scanner) HasBeacon(p geo3d.Pos) bool {
-	_, ok := c.Beacons[p]
-	return ok
+	for _, b := range c.Beacons {
+		if b == p {
+			return true
+		}
+	}
+	return false
 }
 
 func (c *Scanner) Transform(t geo3d.Transform) *Scanner {
 	v := NewScanner(c.Position.Transform(t))
-	for c := range c.Beacons {
-		v.Add(c.Transform(t))
+	for _, obj := range c.Beacons {
+		v.Add(obj.Transform(t))
 	}
 	return v
 }
@@ -71,14 +69,10 @@ func (c *Scanner) Rotations() []*Scanner {
 }
 
 func (c *Scanner) Move(offset geo3d.Pos) *Scanner {
-	if v, ok := c.moves[offset]; ok {
-		return v
-	}
 	v := NewScanner(c.Position.Add(offset))
-	for obj := range c.Beacons {
+	for _, obj := range c.Beacons {
 		v.Add(obj.Add(offset))
 	}
-	c.moves[offset] = v
 	return v
 }
 
@@ -99,7 +93,7 @@ func NewField(scanners ...*Scanner) *Field {
 func (c *Field) Add(scanners ...*Scanner) {
 	c.Scanners = append(c.Scanners, scanners...)
 	for _, s := range scanners {
-		for obj := range s.Beacons {
+		for _, obj := range s.Beacons {
 			c.Beacons[obj] = struct{}{}
 		}
 	}
@@ -110,9 +104,11 @@ func (c *Field) HasBeacon(beacon geo3d.Pos) bool {
 	return ok
 }
 
+// CanFit returns true if s has at least 12 beacons shared with the field and no
+// conflicting beacons.
 func (c *Field) CanFit(s *Scanner) bool {
 	n := 0
-	for beacon := range s.Beacons {
+	for _, beacon := range s.Beacons {
 		if c.HasBeacon(beacon) {
 			n++
 			if n == 12 {
@@ -148,7 +144,6 @@ func (c *Field) MaxManhattan() int {
 }
 
 func Merge(scanners ...*Scanner) (field *Field, ok bool) {
-	// TODO: I'm very slow...
 	field = NewField()
 	if len(scanners) == 0 {
 		ok = true
@@ -158,7 +153,6 @@ func Merge(scanners ...*Scanner) (field *Field, ok bool) {
 	scanners[0] = nil
 	merges, needMerges := 1, len(scanners)
 	for merges < needMerges {
-		merged := false
 		for i, scanner := range scanners {
 			if scanner == nil {
 				continue
@@ -169,12 +163,7 @@ func Merge(scanners ...*Scanner) (field *Field, ok bool) {
 			}
 			field.Add(r)
 			scanners[i] = nil
-			merged = true
 			merges++
-			fmt.Printf("merged %d/%d...\n", merges, needMerges)
-		}
-		if !merged {
-			break
 		}
 	}
 	ok = merges == needMerges
@@ -184,19 +173,14 @@ func Merge(scanners ...*Scanner) (field *Field, ok bool) {
 func tryRotations(field *Field, s *Scanner) *Scanner {
 	rotations := s.Rotations()
 	for b := range field.Beacons {
-		if _, ok := s.noFit[b]; ok {
-			continue
-		}
 		for _, r := range rotations {
-			for a := range r.Beacons {
-				offset := b.Sub(a)
-				m := r.Move(offset)
-				if field.CanFit(m) {
-					return m
-				}
+			beacon := r.Beacons[rand.Int()%len(r.Beacons)]
+			offset := b.Sub(beacon)
+			m := r.Move(offset)
+			if field.CanFit(m) {
+				return m
 			}
 		}
-		s.noFit[b] = struct{}{}
 	}
 	return nil
 }
