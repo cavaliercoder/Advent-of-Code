@@ -7,6 +7,7 @@ import (
 
 	"aoc/internal/assert"
 	"aoc/internal/fixture"
+	"aoc/internal/geo3d"
 )
 
 func parseOp(s string) (op Op, err error) {
@@ -22,8 +23,8 @@ func parseOp(s string) (op Op, err error) {
 	return
 }
 
-func parseCube(s string) (Cube, error) {
-	var c Cube
+func parseCube(s string) (geo3d.Cube, error) {
+	var c geo3d.Cube
 	n, _ := fmt.Sscanf(
 		s,
 		"x=%d..%d,y=%d..%d,z=%d..%d",
@@ -35,7 +36,7 @@ func parseCube(s string) (Cube, error) {
 		&c.B.Z,
 	)
 	if n != 6 {
-		return Cube{}, fmt.Errorf("invalid operation: %s", s)
+		return geo3d.Cube{}, fmt.Errorf("invalid operation: %s", s)
 	}
 	c.B.X++
 	c.B.Y++

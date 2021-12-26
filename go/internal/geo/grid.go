@@ -41,15 +41,22 @@ func ReadGrid(r io.Reader) (*Grid, error) {
 	return grid, nil
 }
 
-// Len returns the total number of cells in the grid.
-func (c *Grid) Len() int { return len(c.Data) }
-
 func (c *Grid) Reset(b byte) *Grid {
-	for i := 0; i < len(c.Data); i++ {
+	for i := range c.Data {
 		c.Data[i] = b
 	}
 	return c
 }
+
+func (c *Grid) Normalize(b byte) *Grid {
+	for i, a := range c.Data {
+		c.Data[i] = a - b
+	}
+	return c
+}
+
+// Len returns the total number of cells in the grid.
+func (c *Grid) Len() int { return len(c.Data) }
 
 func (c *Grid) Index(pos Pos) int {
 	if !c.Contains(pos) {
@@ -67,6 +74,9 @@ func (c *Grid) Indexes(positions ...Pos) []int {
 }
 
 func (c *Grid) Pos(i int) Pos {
+	if i < 0 || i >= len(c.Data) {
+		panic(fmt.Sprintf("index out of bounds: %d", i))
+	}
 	return Pos{i % c.Width, i / c.Width}
 }
 
@@ -107,43 +117,58 @@ func (c *Grid) UDLR(p Pos) []Pos {
 	return a
 }
 
-func (c *Grid) Get(p Pos) (b byte, ok bool) {
+// Get returns the value of the cell at p or 0 if it is out of bounds.
+func (c *Grid) Get(p Pos) byte {
 	i := c.Index(p)
 	if i < 0 {
-		return 0, false
+		return 0
+	}
+	return c.Data[i]
+}
+
+func (c *Grid) GetWithDefault(p Pos, value byte) byte {
+	i := c.Index(p)
+	if i < 0 {
+		return value
+	}
+	return c.Data[i]
+}
+
+func (c *Grid) MaybeGet(p Pos) (b byte, ok bool) {
+	i := c.Index(p)
+	if i < 0 {
+		return
 	}
 	return c.Data[i], true
 }
 
-func (c *Grid) GetWithDefault(p Pos, value byte) byte {
-	b, ok := c.Get(p)
-	if !ok {
-		return value
-	}
-	return b
-}
-
 func (c *Grid) MustGet(p Pos) byte {
-	b, ok := c.Get(p)
-	if !ok {
-		panic(fmt.Sprintf("out of bounds: %v (%dx%d)", p, c.Width, c.Height))
+	i := c.Index(p)
+	if i < 0 {
+		panic(fmt.Sprintf("position out of bounds: %v", p))
 	}
-	return b
+	return c.Data[i]
 }
 
-func (c *Grid) Set(pos Pos, b byte) {
-	i := c.Index(pos)
+func (c *Grid) Set(p Pos, b byte) {
+	i := c.Index(p)
 	if i < 0 {
-		panic(fmt.Sprintf("out of bounds: %v", pos))
+		panic(fmt.Sprintf("position out of bounds: %v", p))
 	}
 	c.Data[i] = b
 }
 
-func (c *Grid) Print(w io.Writer) {
+func (c *Grid) Format(w io.Writer) {
 	newline := []byte{'\n'}
 	for y := 0; y < c.Height; y++ {
 		i := y * c.Width
 		w.Write(c.Data[i : i+c.Width])
 		w.Write(newline)
 	}
+}
+
+func (c *Grid) String() string {
+	b := new(bytes.Buffer)
+	c.Format(b)
+	return b.String()
 }

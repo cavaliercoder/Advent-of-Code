@@ -1,12 +1,12 @@
 package day09
 
 import (
-	"aoc/internal/geo"
 	"sort"
 	"testing"
 
 	"aoc/internal/assert"
 	"aoc/internal/fixture"
+	"aoc/internal/geo"
 )
 
 func openFixture(t *testing.T) *geo.Grid {

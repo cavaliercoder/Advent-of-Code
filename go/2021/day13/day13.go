@@ -58,5 +58,5 @@ func PrintGrid(w io.Writer, grid map[geo.Pos]struct{}) {
 	for p := range grid {
 		g.Set(p, '#')
 	}
-	g.Print(w)
+	g.Format(w)
 }

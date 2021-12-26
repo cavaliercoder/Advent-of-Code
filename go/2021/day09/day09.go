@@ -1,12 +1,14 @@
 package day09
 
-import "aoc/internal/geo"
+import (
+	"aoc/internal/geo"
+)
 
 func IsLowPoint(g *geo.Grid, i int) bool {
-	v := g.Data[i]
 	p := g.Pos(i)
-	for _, adj := range []geo.Pos{geo.PosUp, geo.PosRight, geo.PosDown, geo.PosLeft} {
-		if neighbor, ok := g.Get(p.Add(adj)); ok {
+	v := g.Data[i]
+	for _, adj := range geo.MapPos(p.Add, geo.PosUDLR...) {
+		if neighbor, ok := g.MaybeGet(adj); ok {
 			if neighbor <= v {
 				return false
 			}

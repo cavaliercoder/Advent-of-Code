@@ -3,109 +3,36 @@ package day19
 import (
 	"fmt"
 
-	"aoc/internal/util"
+	"aoc/internal/geo3d"
 )
 
-// Tranform is a 3D rotation matrix.
-type Transform [9]int
-
-// Rotations contains all possible 3D rotations with increments of 90 degrees.
-// Courtesy: https://www.euclideanspace.com/maths/algebra/matrix/transforms/examples/index.htm
-var Rotations = []Transform{
-	{1, 0, 0, 0, 1, 0, 0, 0, 1}, // identity
-	{0, 0, 1, 0, 1, 0, -1, 0, 0},
-	{-1, 0, 0, 0, 1, 0, 0, 0, -1},
-	{0, 0, -1, 0, 1, 0, 1, 0, 0},
-
-	{0, -1, 0, 1, 0, 0, 0, 0, 1},
-	{0, 0, 1, 1, 0, 0, 0, 1, 0},
-	{0, 1, 0, 1, 0, 0, 0, 0, -1},
-	{0, 0, -1, 1, 0, 0, 0, -1, 0},
-
-	{0, 1, 0, -1, 0, 0, 0, 0, 1},
-	{0, 0, 1, -1, 0, 0, 0, -1, 0},
-	{0, -1, 0, -1, 0, 0, 0, 0, -1},
-	{0, 0, -1, -1, 0, 0, 0, 1, 0},
-
-	{1, 0, 0, 0, 0, -1, 0, 1, 0},
-	{0, 1, 0, 0, 0, -1, -1, 0, 0},
-	{-1, 0, 0, 0, 0, -1, 0, -1, 0},
-	{0, -1, 0, 0, 0, -1, 1, 0, 0},
-
-	{1, 0, 0, 0, -1, 0, 0, 0, -1},
-	{0, 0, -1, 0, -1, 0, -1, 0, 0},
-	{-1, 0, 0, 0, -1, 0, 0, 0, 1},
-	{0, 0, 1, 0, -1, 0, 1, 0, 0},
-
-	{1, 0, 0, 0, 0, 1, 0, -1, 0},
-	{0, -1, 0, 0, 0, 1, -1, 0, 0},
-	{-1, 0, 0, 0, 0, 1, 0, 1, 0},
-	{0, 1, 0, 0, 0, 1, 1, 0, 0},
-}
-
-type Coord struct {
-	X, Y, Z int
-}
-
-func (c Coord) Add(other Coord) Coord {
-	v := c
-	v.X += other.X
-	v.Y += other.Y
-	v.Z += other.Z
-	return v
-}
-
-func (c Coord) Sub(other Coord) Coord {
-	v := c
-	v.X -= other.X
-	v.Y -= other.Y
-	v.Z -= other.Z
-	return v
-}
-
-func (c Coord) Transform(t Transform) Coord {
-	v := c
-	v.X = c.X*t[0] + c.Y*t[1] + c.Z*t[2]
-	v.Y = c.X*t[3] + c.Y*t[4] + c.Z*t[5]
-	v.Z = c.X*t[6] + c.Y*t[7] + c.Z*t[8]
-	return v
-}
-
-func (c Coord) Manhattan() int {
-	return util.Abs(c.X) + util.Abs(c.Y) + util.Abs(c.Z)
-}
-
-func (c Coord) String() string {
-	return fmt.Sprintf("<%d,%d,%d>", c.X, c.Y, c.Z)
-}
-
 type Scanner struct {
-	Position Coord
-	Beacons  map[Coord]struct{}
+	Position geo3d.Pos
+	Beacons  map[geo3d.Pos]struct{}
 
 	rotations []*Scanner
-	moves     map[Coord]*Scanner
-	noFit     map[Coord]struct{}
+	moves     map[geo3d.Pos]*Scanner
+	noFit     map[geo3d.Pos]struct{}
 }
 
-func NewScanner(position Coord, beacons ...Coord) *Scanner {
+func NewScanner(position geo3d.Pos, beacons ...geo3d.Pos) *Scanner {
 	v := &Scanner{
 		Position: position,
-		Beacons:  make(map[Coord]struct{}, 32),
-		moves:    make(map[Coord]*Scanner),
-		noFit:    make(map[Coord]struct{}),
+		Beacons:  make(map[geo3d.Pos]struct{}, 32),
+		moves:    make(map[geo3d.Pos]*Scanner),
+		noFit:    make(map[geo3d.Pos]struct{}),
 	}
 	v.Add(beacons...)
 	return v
 }
 
-func (c *Scanner) Add(beacons ...Coord) {
+func (c *Scanner) Add(beacons ...geo3d.Pos) {
 	for _, obj := range beacons {
 		c.Beacons[obj] = struct{}{}
 	}
 }
 
-func (c *Scanner) IsInRange(p Coord) bool {
+func (c *Scanner) IsInRange(p geo3d.Pos) bool {
 	if p.X < c.Position.X-1000 ||
 		p.Y < c.Position.Y-1000 ||
 		p.Z < c.Position.Z-1000 {
@@ -119,12 +46,12 @@ func (c *Scanner) IsInRange(p Coord) bool {
 	return true
 }
 
-func (c *Scanner) HasBeacon(p Coord) bool {
+func (c *Scanner) HasBeacon(p geo3d.Pos) bool {
 	_, ok := c.Beacons[p]
 	return ok
 }
 
-func (c *Scanner) Transform(t Transform) *Scanner {
+func (c *Scanner) Transform(t geo3d.Transform) *Scanner {
 	v := NewScanner(c.Position.Transform(t))
 	for c := range c.Beacons {
 		v.Add(c.Transform(t))
@@ -136,14 +63,14 @@ func (c *Scanner) Rotations() []*Scanner {
 	if c.rotations != nil {
 		return c.rotations
 	}
-	c.rotations = make([]*Scanner, len(Rotations))
-	for i, t := range Rotations {
+	c.rotations = make([]*Scanner, len(geo3d.Rotations))
+	for i, t := range geo3d.Rotations {
 		c.rotations[i] = c.Transform(t)
 	}
 	return c.rotations
 }
 
-func (c *Scanner) Move(offset Coord) *Scanner {
+func (c *Scanner) Move(offset geo3d.Pos) *Scanner {
 	if v, ok := c.moves[offset]; ok {
 		return v
 	}
@@ -157,13 +84,13 @@ func (c *Scanner) Move(offset Coord) *Scanner {
 
 type Field struct {
 	Scanners []*Scanner
-	Beacons  map[Coord]struct{}
+	Beacons  map[geo3d.Pos]struct{}
 }
 
 func NewField(scanners ...*Scanner) *Field {
 	v := &Field{
 		Scanners: make([]*Scanner, 0, 64),
-		Beacons:  make(map[Coord]struct{}, 4096),
+		Beacons:  make(map[geo3d.Pos]struct{}, 4096),
 	}
 	v.Add(scanners...)
 	return v
@@ -178,7 +105,7 @@ func (c *Field) Add(scanners ...*Scanner) {
 	}
 }
 
-func (c *Field) HasBeacon(beacon Coord) bool {
+func (c *Field) HasBeacon(beacon geo3d.Pos) bool {
 	_, ok := c.Beacons[beacon]
 	return ok
 }
