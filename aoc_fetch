@@ -1,0 +1,39 @@
+#!/usr/bin/env python3
+
+import os
+import os.path
+import requests
+import sys
+
+
+def download(year: int, day: int, session_cookie: str) -> None:
+    out_dir = f"./inputs/{year}"
+    os.makedirs(out_dir, exist_ok=True)
+    resp = requests.get(
+        f"https://adventofcode.com/{year}/day/{day}/input",
+        cookies={"session": session_cookie},
+    )
+    out_file = f"{out_dir}/day{day:02}.txt"
+    with open(out_file, "wb") as f:
+        f.write(resp.content)
+    return out_file
+
+def main():
+    if len(sys.argv) != 3:
+        print(f"usage: {sys.argv[0]} <YEAR> <DAY | all>", file=sys.stderr)
+        exit(1)
+    year = int(sys.argv[1])
+    assert year >= 2015 and year <= 2023
+    if sys.argv[2] == "all":
+        days = range(1, 26)
+    else:
+        day = [int(sys.argv[2])]
+        assert day >= 1 and day <= 25
+        days = [day]
+    session_cookie = os.environ.get("AOC_SESSION")
+    assert session_cookie, "Please set AOC_SESSION"
+    for day in days:
+        download(year, day, session_cookie)
+
+if __name__ == "__main__":
+    main()
