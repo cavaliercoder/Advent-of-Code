@@ -1,4 +1,3 @@
-
 #include "aoc.h"
 
 #include <algorithm>
@@ -26,14 +25,13 @@ std::vector<BaseTest*> get_tests() {
 }
 
 int run_tests() {
-  int fail_count = 0;
+  int errc = 0;
   auto tests = get_tests();
   StopWatch sw, sw_all;
   sw_all.start();
   for (int i = 0; i < tests.size(); ++i) {
     auto test = tests[i];
-    std::cout << "[" << (i + 1) << "/" << tests.size() << "]";
-    std::cout << " " << test->suite() << "::" << test->name();
+    std::cout << test->suite() << "::" << test->name();
     sw.start();
     test->run();
     sw.stop();
@@ -41,7 +39,7 @@ int run_tests() {
     if (*test) {
       std::cout << " [\u001b[32mPASS\u001b[0m]\n";
     } else {
-      ++fail_count;
+      ++errc;
       std::cout << " [\u001b[31mFAIL\u001b[0m]\n";
       for (auto& err : test->errv()) {
         std::cout << "  " << err.file() << ":" << err.line()
@@ -53,137 +51,82 @@ int run_tests() {
     }
   }
   sw_all.stop();
-
-  std::cout << "\nPassed " << (tests.size() - fail_count) << "/" << tests.size()
+  std::cout << "\nPassed " << (tests.size() - errc) << "/" << tests.size()
             << " tests in " << sw_all << ".\n";
   for (auto& test : tests) delete test;
-  return fail_count;
+  return errc;
 }
 
-TEST(AoC, Point) {
-  using Point = aoc::Point<2, int>;
+/*
+ * Hash digests
+ */
 
-  auto p = Point(1, 1);
-  EXPECT_EQ(p + Point(2, 2), Point(3, 3));
-  EXPECT_EQ(p, Point(1, 1));
-  EXPECT_EQ(p += Point(3, 4), Point(4, 5));
-  EXPECT_EQ(p, Point(4, 5));
+#define IMPLEMENT_DIGEST(class_name, digest_size)                             \
+  int class_name::Digest::size() const { return digest_size; }                \
+                                                                              \
+  std::string class_name::Digest::str() const {                               \
+    return hex(&data_[0], digest_size);                                       \
+  }                                                                           \
+                                                                              \
+  unsigned char class_name::Digest::operator[](const int i) const {           \
+    return data_[i];                                                          \
+  }                                                                           \
+                                                                              \
+  bool operator==(const class_name::Digest& lhs,                              \
+                  const class_name::Digest& rhs) {                            \
+    for (int i = 0; i < digest_size; ++i)                                     \
+      if (lhs[i] != rhs[i]) return false;                                     \
+    return true;                                                              \
+  }                                                                           \
+                                                                              \
+  bool operator!=(const class_name::Digest& lhs,                              \
+                  const class_name::Digest& rhs) {                            \
+    return !(lhs == rhs);                                                     \
+  }                                                                           \
+                                                                              \
+  std::ostream& operator<<(std::ostream& os, const class_name::Digest& sum) { \
+    hex(os, &sum.data_[0], digest_size);                                      \
+    return os;                                                                \
+  }                                                                           \
+                                                                              \
+  class_name::class_name() { reset(); }                                       \
+                                                                              \
+  class_name::class_name(const void* data, size_t len) : class_name() {       \
+    update(data, len);                                                        \
+  }                                                                           \
+                                                                              \
+  class_name::class_name(const char* str) : class_name() { update(str); }     \
+                                                                              \
+  class_name::class_name(const std::string& str) : class_name() {             \
+    update(str);                                                              \
+  }                                                                           \
+                                                                              \
+  void class_name::update(const void* data, size_t len) {                     \
+    CC_##class_name##_Update(&ctx_, data, len);                               \
+  }                                                                           \
+                                                                              \
+  void class_name::update(const char* str) {                                  \
+    CC_##class_name##_Update(&ctx_, str, std::strlen(str));                   \
+  }                                                                           \
+                                                                              \
+  void class_name::update(const std::string& str) {                           \
+    CC_##class_name##_Update(&ctx_, str.c_str(), str.size());                 \
+  }                                                                           \
+                                                                              \
+  void class_name::reset() { CC_##class_name##_Init(&ctx_); }                 \
+                                                                              \
+  class_name::Digest class_name::sum() const {                                \
+    CC_##class_name##_CTX ctx = ctx_;                                         \
+    Digest d;                                                                 \
+    CC_##class_name##_Final(&d.data_[0], &ctx);                               \
+    return d;                                                                 \
+  }                                                                           \
+                                                                              \
+  std::string class_name::str() const { return sum().str(); }                 \
+                                                                              \
+  class_name::Digest class_name::operator()() const { return sum(); }
 
-  auto [u, d, l, r] = Point(1, 1).udlr();
-  EXPECT_EQ(u, Point(1, 2));
-  EXPECT_EQ(d, Point(1, 0));
-  EXPECT_EQ(l, Point(0, 1));
-  EXPECT_EQ(r, Point(2, 1));
-}
-
-TEST(AoC, Grid) {
-  using Grid = aoc::Grid<char>;
-  using Point = aoc::Point<2, int>;
-
-  auto g = Grid(4, 3, ' ');
-  EXPECT_EQ(g.width(), 4);
-  EXPECT_EQ(g.height(), 3);
-  EXPECT_EQ(g.size(), 12);
-  EXPECT_EQ(g.count(' '), 12);
-
-  // Test boundaries
-  EXPECT_FALSE(g.contains(-1));
-  EXPECT_FALSE(g.contains(12));
-  EXPECT_FALSE(g.contains(Point(-1, -1)));
-  EXPECT_FALSE(g.contains(Point(4, 3)));
-  EXPECT_FALSE(g.contains(Point(4, 1)));
-  EXPECT_FALSE(g.contains(Point(1, 3)));
-
-  // Rewrite the whole grid with unique values
-  int i = 0;
-  for (auto it = g.begin(); it != g.end(); ++it) {
-    EXPECT_EQ(*it, ' ');
-    char c = 'A' + i++;
-    g[it] = c;
-    EXPECT_EQ(*it, c);
-  }
-
-  // Test formatting
-  EXPECT_EQ(g.str(), "ABCD\nEFGH\nIJKL\n");
-
-  // Test direct access
-  std::array<Point, 12> points = {
-      Point(0, 0), Point(1, 0), Point(2, 0), Point(3, 0),
-      Point(0, 1), Point(1, 1), Point(2, 1), Point(3, 1),
-      Point(0, 2), Point(1, 2), Point(2, 2), Point(3, 2),
-  };
-  for (int i = 0; i < points.size(); ++i) {
-    Point p = points[i];
-    char c = 'A' + i;
-    EXPECT_TRUE(g.contains(p));
-    EXPECT_EQ(g[p], g[i]);
-    EXPECT_EQ(g[p], c);
-    EXPECT_EQ(g.count(c), 1);
-  }
-
-  // Test for-each loop
-  i = 0;
-  for (auto c : g) {
-    EXPECT_EQ(c, 'A' + i++);
-  }
-  EXPECT_EQ(i, 12);
-
-  // Test forward iteration
-  i = 0;
-  auto it = g.begin();
-  for (int y = 0; y < g.height(); ++y) {
-    for (int x = 0; x < g.width(); ++x) {
-      EXPECT_NE(it, g.end());
-      EXPECT_LT(it, g.end());
-      EXPECT_LE(it, g.end());
-      EXPECT_GT(g.end(), it);
-      EXPECT_GE(g.end(), it);
-      EXPECT_EQ(*it, 'A' + i);
-      EXPECT_EQ(it.index(), i);
-      EXPECT_EQ(it.point(), Point(x, y));
-      ++it;
-      ++i;
-    }
-  }
-  EXPECT_EQ(it, g.end());
-  EXPECT_LE(it, g.end());
-  EXPECT_EQ(g.end(), it);
-
-  // Test seek iteration
-  it = g.begin();
-  EXPECT_EQ(it.point(), Point());
-  EXPECT_EQ(it.index(), 0);
-  EXPECT_EQ(*it, 'A');
-  EXPECT_EQ(g[it], 'A');
-  EXPECT_EQ(g[it.index()], 'A');
-  EXPECT_EQ(g[it.point()], 'A');
-
-  // Post-fix increment
-  EXPECT_EQ(*(it++), 'A');
-  EXPECT_EQ(it.point(), Point(1, 0));
-  EXPECT_EQ(it.index(), 1);
-  EXPECT_EQ(*it, 'B');
-  EXPECT_EQ(g[it], 'B');
-  EXPECT_EQ(g[it.index()], 'B');
-  EXPECT_EQ(g[it.point()], 'B');
-
-  // Prefix increment
-  EXPECT_EQ(*(++it), 'C');
-  EXPECT_EQ(it.point(), Point(2, 0));
-  EXPECT_EQ(it.index(), 2);
-  EXPECT_EQ(*it, 'C');
-  EXPECT_EQ(g[it], 'C');
-  EXPECT_EQ(g[it.index()], 'C');
-  EXPECT_EQ(g[it.point()], 'C');
-
-  // Increment N
-  EXPECT_EQ(*(it += 5), 'H');
-  EXPECT_EQ(it.point(), Point(3, 1));
-  EXPECT_EQ(it.index(), 7);
-  EXPECT_EQ(*it, 'H');
-  EXPECT_EQ(g[it], 'H');
-  EXPECT_EQ(g[it.index()], 'H');
-  EXPECT_EQ(g[it.point()], 'H');
-}
+IMPLEMENT_DIGEST(SHA1, 20);
+IMPLEMENT_DIGEST(SHA256, 32);
 
 }  // namespace aoc

@@ -58,7 +58,7 @@ class Day10 {
 TEST(Day10, Part1) { EXPECT_EQ(Day10().Part1(aoc::Input(2022, 10)), 13740); }
 
 TEST(Day10, Part2) {
-  const std::string expect =
+  const std::string ZUPRFECL =
       "####.#..#.###..###..####.####..##..#....\n"
       "...#.#..#.#..#.#..#.#....#....#..#.#....\n"
       "..#..#..#.#..#.#..#.###..###..#....#....\n"
@@ -66,7 +66,7 @@ TEST(Day10, Part2) {
       "#....#..#.#....#.#..#....#....#..#.#....\n"
       "####..##..#....#..#.#....####..##..####.\n";
 
-  EXPECT_EQ(Day10().Part2(aoc::Input(2022, 10)), expect);
+  EXPECT_EQ(Day10().Part2(aoc::Input(2022, 10)), ZUPRFECL);
 }
 
 }  // namespace aoc2022

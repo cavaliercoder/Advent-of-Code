@@ -11,10 +11,31 @@
 #include <iterator>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
+#ifdef __APPLE__
+#include <CommonCrypto/CommonDigest.h>
+#endif
+
 namespace aoc {
+
+/*
+ * Math
+ */
+
+// Computes the value of base raised to the power exp in O(log(exp)).
+template <typename T>
+T pow(const T base, const T exp) {
+  if (exp == 0) return 1;
+  if (exp == 1) return base;
+  T n = pow(base, exp / 2);
+  if (exp % 2 == 0)
+    return n * n;
+  else
+    return base * n * n;
+}
 
 /*
  * Testing
@@ -154,13 +175,13 @@ class StopWatch {
     auto d = sw.duration();
     if (d < 1000) return os << d << "ns";
     if (d < 1000000) return os << d / 1000 << "µs";
-    if (d < 1000000000) return os << d / 1000000 << "ms";
+    if (d < 2000000000) return os << d / 1000000 << "ms";
     return os << d / 1000000000 << "s";
   }
 };
 
 /*
- * Set and maps
+ * Set container
  */
 
 template <typename T>
@@ -228,6 +249,46 @@ class Set : public std::unordered_set<T> {
   friend Set& operator^=(Set& lhs, const Set& rhs) { lhs = lhs ^ rhs; }
 };
 
+// Min/max heap.
+//
+// Wraps std::*_heap functions.
+// Defaults to max-heap. Use Compare=std::greater<T> for a min-heap.
+template <typename T, class Compare = std::less<T>>
+class Heap {
+  std::vector<T> data_;
+  Compare cmp_;
+
+ public:
+  Heap(std::initializer_list<T> init, Compare cmp = Compare()) : cmp_(cmp) {
+    data_ = std::vector<T>(init);
+    std::make_heap(data_.begin(), data_.end(), cmp_);
+  }
+
+  Heap(T init, Compare cmp = Compare()) : Heap({init}, cmp) {}
+
+  void push(const T x) {
+    data_.push_back(x);
+    std::push_heap(data_.begin(), data_.end(), cmp_);
+  }
+
+  template <class IterT>
+  void push(IterT first, IterT last) {
+    while (first < last) push(*(first++));
+  }
+
+  T pop() {
+    std::pop_heap(data_.begin(), data_.end(), cmp_);
+    auto result = data_.back();
+    data_.pop_back();
+    return result;
+  }
+
+  bool empty() const { return data_.empty(); }
+  std::size_t size() const { return data_.size(); }
+
+  operator bool() const { return !data_.empty(); }
+};
+
 /*
  * Value Range
  */
@@ -279,8 +340,8 @@ struct Range {
   }
 
   inline friend bool operator<(const Range& lhs, const Range& rhs) {
-    if (lhs.start == rhs.start) return lhs.end_ < rhs.end_;
-    return lhs.start < rhs.end_;
+    if (lhs.start == rhs.start) return lhs.limit < rhs.limit;
+    return lhs.start < rhs.limit;
   }
 
   inline friend bool operator<=(const Range& lhs, const Range& rhs) {
@@ -288,8 +349,8 @@ struct Range {
   }
 
   inline friend bool operator>(const Range& lhs, const Range& rhs) {
-    if (lhs.start == rhs.start) return lhs.end_ > rhs.end_;
-    return lhs.start > rhs.end_;
+    if (lhs.start == rhs.start) return lhs.limit > rhs.limit;
+    return lhs.start > rhs.limit;
   }
 
   inline friend bool operator>=(const Range& lhs, const Range& rhs) {
@@ -335,22 +396,18 @@ struct Range {
 
 template <int N = 2, typename T = int>
 struct Point {
-  T data[N];
+  T data[N] = {};
 
-  Point() {
-    for (int i = 0; i < N; ++i) data[i] = 0;
+  Point() = default;
+
+  Point(std::initializer_list<T> init) {
+    assert(init.size() == N);
+    std::copy(init.begin(), init.end(), data);
   }
 
-  Point<2, T>(const int x, const int y) {
-    data[0] = x;
-    data[1] = y;
-  };
+  Point<2, T>(const int x, const int y) : Point{x, y} {};
 
-  Point<3, T>(const T x, const T y, const T z) {
-    data[0] = x;
-    data[1] = y;
-    data[2] = z;
-  };
+  Point<3, T>(const T x, const T y, const T z) : Point{x, y, z} {}
 
   inline T x() const { return data[0]; }
   inline T y() const { return data[1]; }
@@ -360,6 +417,45 @@ struct Point {
     for (int i = 0; i < N; ++i)
       if (data[i]) return false;
     return true;
+  }
+
+  Point map(const std::function<T(T)>& f) const {
+    Point p = {};
+    for (int i = 0; i < N; ++i) p.data[i] = f(data[i]);
+    return p;
+  }
+
+  Point map(const Point p, const std::function<T(T, T)>& f) const {
+    Point q = {};
+    for (int i = 0; i < N; ++i) q.data[i] = f(data[i], p.data[i]);
+    return q;
+  }
+
+  inline Point abs() const {
+    return map([](const T n) -> T { return std::abs(n); });
+  }
+
+  inline Point min(const Point p) const {
+    return map(p, [](const T a, const T b) -> T { return std::min(a, b); });
+  }
+
+  inline Point max(const Point p) const {
+    return map(p, [](const T a, const T b) -> T { return std::max(a, b); });
+  }
+
+  inline T manhattan(const Point p) const {
+    T n = 0;
+    for (int i = 0; i < N; ++i) n += std::abs(data[i] - p.data[i]);
+    return n;
+  }
+
+  // Increment each dimension toward p.
+  Point nudge(const Point p) const {
+    return map(p, [](const T a, const T b) -> T {
+      if (a < b) return std::min(a + 1, b);
+      if (a > b) return std::max(a - 1, b);
+      return a;
+    });
   }
 
 #define POINT_MOVE(name, index, op)    \
@@ -388,50 +484,25 @@ struct Point {
     return {up(), down(), left(), right(), forward(), backward()};
   }
 
-  Point map(const std::function<T(T)>& f) const {
-    Point p = {};
-    for (int i = 0; i < N; ++i) p.data[i] = f(data[i]);
-    return p;
+  inline Point operator-() const {
+    return map([](const T n) -> T { return -n; });
   }
 
-  Point map(const std::function<T(const T, const T)>& f,
-            const Point rhs) const {
-    Point p = {};
-    for (int i = 0; i < N; ++i) p.data[i] = f(data[i], rhs.data[i]);
-    return p;
-  }
-
-  inline Point abs() const {
-    return map([](T n) -> T { return std::abs(n); });
-  }
-
-  inline Point min(const Point p) const {
-    return map([](const T a, const T b) -> T { return std::min(a, b); });
-  }
-
-  inline Point max(const Point p) const {
-    return map([](const T a, const T b) -> T { return std::max(a, b); });
-  }
-
-#define POINT_ARITHMATIC(op)                                          \
-  inline friend Point operator op(const Point lhs, const Point rhs) { \
-    return lhs.map([](T a, T b) -> T { return a op b; }, rhs);        \
-  }                                                                   \
-                                                                      \
-  inline friend Point operator op(const Point lhs, const T rhs) {     \
-    return lhs.map([rhs](T n) -> T { return n op rhs; });             \
-  }                                                                   \
-                                                                      \
-  inline friend Point operator op(const T lhs, const Point rhs) {     \
-    return rhs op lhs;                                                \
-  }                                                                   \
-                                                                      \
-  inline friend Point operator op##=(Point& lhs, const Point rhs) {   \
-    return lhs = lhs op rhs;                                          \
-  }                                                                   \
-                                                                      \
-  inline friend Point operator op##=(Point& lhs, const T rhs) {       \
-    return lhs = lhs op rhs;                                          \
+#define POINT_ARITHMATIC(op)                                               \
+  inline friend Point operator op(const Point lhs, const Point rhs) {      \
+    return lhs.map(rhs, [](const T a, const T b) -> T { return a op b; }); \
+  }                                                                        \
+                                                                           \
+  inline friend Point operator op(const Point lhs, const T rhs) {          \
+    return lhs.map([rhs](const T n) -> T { return n op rhs; });            \
+  }                                                                        \
+                                                                           \
+  inline friend Point operator op##=(Point& lhs, const Point rhs) {        \
+    return lhs = lhs op rhs;                                               \
+  }                                                                        \
+                                                                           \
+  inline friend Point operator op##=(Point& lhs, const T rhs) {            \
+    return lhs = lhs op rhs;                                               \
   }
 
   POINT_ARITHMATIC(+)
@@ -480,10 +551,102 @@ struct Point {
   }
 };
 
+template <typename T>
+struct Rect {
+  using Point = Point<2, T>;
+
+  Point a;
+  Point b;
+
+  Rect(const Point a, const Point b) : a(a), b(b) {}
+
+  inline Point tl() const { return a; }
+  inline Point tr() const { return Point(b.x(), a.y()); }
+  inline Point bl() const { return Point(a.x(), b.y()); }
+  inline Point br() const { return b; }
+  inline int width() const { return std::abs(b.x() - a.x()); }
+  inline int height() const { return std::abs(b.y() - a.y()); }
+  inline int size() const { return width() * height(); }
+
+  // Split into four quarters.
+  std::array<Rect, 4> split() const {
+    auto w = width() / 2;
+    auto h = height() / 2;
+    return {
+        Rect(a, {a.x() + w, a.y() + h}),
+        Rect({a.x() + w, a.y()}, {b.x(), a.y() + h}),
+        Rect({a.x(), a.y() + h}, {a.x() + w, b.y()}),
+        Rect({a.x() + w, a.y() + h}, b),
+    };
+  }
+};
+
+// Space is a container of elements arranged in an infinite N-dimensional
+// space.
+template <int N, typename K, typename V>
+class Space {
+  using Point = Point<N, K>;
+  using Map = std::unordered_map<Point, V>;
+
+  V zero_;
+  Map map_;
+  Point min_;
+  Point max_;
+
+ public:
+  explicit Space(const V zero = V()) : zero_(zero) {}
+  inline int size() const { return map_.size(); }
+  inline bool empty() const { return map_.empty(); }
+  inline Point min() const { return min_; }
+  inline Point max() const { return max_; }
+  inline K width() const { return max_.x() - min_.x() + 1; }
+  inline K height() const { return max_.y() - min_.y() + 1; }
+  inline K depth() const { return max_.z() - min_.z() + 1; }
+  inline bool contains(const Point p) const { return map_.count(p); }
+  inline auto begin() const { return map_.begin(); }
+  inline auto end() const { return map_.end(); }
+
+  inline int count(const Point p) const { return map_.count(p); }
+
+  int count(const V value) const {
+    int count = 0;
+    for (auto& [_, v] : map_) {
+      if (v == value) ++count;
+    }
+    return count;
+  }
+
+  void clear() {
+    map_.clear();
+    min_ = {}, max_ = {};
+  }
+
+  V at(const Point p) const {
+    if (!contains(p)) return zero_;
+    return map_.at(p);
+  }
+
+  void insert(const std::pair<const Point, V> value) {
+    map_.insert(value);
+    min_ = min_.min(value.first);
+    max_ = max_.max(value.first);
+  }
+
+  inline void insert(const Point p, V value) { return insert({p, value}); }
+
+  inline V operator[](const Point p) const { return at(p); }
+
+  inline V& operator[](const Point p) {
+    if (!contains(p)) insert(p, zero_);
+    return map_.at(p);
+  }
+};
+
 /*
  * Data Grid
  */
 
+// Grid is a container of elements arranged in a finite 2-dimensional space.
 template <typename T = char>
 class Grid {
   using Point = Point<2, int>;
@@ -705,6 +868,12 @@ class Input {
     return *this;
   }
 
+  Input& get(std::string& s, const std::streamsize n = 1) {
+    s.clear();
+    for (int i = 0; i < n; ++i) s.push_back(get());
+    return *this;
+  }
+
   inline Input& get_line(std::string& s) {
     std::getline(in_, s);
     return *this;
@@ -745,6 +914,19 @@ class Input {
     }
     return *this;
   }
+
+  Input& expect(const char* str) {
+    for (; *str; ++str) expect(*str);
+    return *this;
+  }
+
+  // Input& expect(const char* str, const size_t len) {
+  //   for (int i = 0; i < len; ++i) expect(str[i]);
+  // }
+
+  // Input& expect(const std::string& str) {
+  //   for (const char c : str) expect(c);
+  // }
 
   Input& discard(const char c) {
     if (is(c)) in_.ignore();
@@ -827,6 +1009,196 @@ class Input {
   inline char operator*() { return peek(); }
   inline operator bool() { return !err_ && in_ && in_.peek() != EOF; }
 };
+
+/*
+ * Algorithms
+ */
+
+// Computes the shortest path weight between all vertices in a graph in Θ(|V|³).
+//
+// Edges are provided as an AdjacencyList keyed by Key, which should map source
+// vertices to their connected vertices, to the weight of each connected edge.
+// For example, edges[u][v] should return the weight of the edge from u to v.
+//
+// The inf value should be high enough that it will exceed the maximum weight of
+// any path through the graph but not so high that 2*inf creates an integer
+// overflow or sign change.
+//
+// The returned map can be used to find the shortest path between any two
+// points.
+//
+// To find the the shortest distance between vertices v and u:
+//
+//     auto weights = floyd_warshall<Key>(edges);
+//     auto best = weight[v][u];
+//
+template <typename Key, typename Weight = int,
+          typename AdjacencyList =
+              std::unordered_map<Key, std::unordered_map<Key, Weight>>>
+std::unordered_map<Key, std::unordered_map<Key, Weight>> floyd_warshall(
+    AdjacencyList& edges, const Weight inf = 1 << 30) {
+  auto distance = std::unordered_map<Key, std::unordered_map<Key, Weight>>();
+  for (const auto& [v, _] : edges)
+    for (const auto& [u, _] : edges) distance[v][u] = inf;
+  for (const auto& [v, ve] : edges) {
+    distance[v][v] = 0;
+    for (const auto& [u, w] : ve) distance[v][u] = w;
+  }
+  for (const auto& [k, _] : edges)
+    for (const auto& [i, _] : edges)
+      for (const auto& [j, _] : edges)
+        if (distance[i][k] < inf && distance[k][j] < inf)
+          distance[i][j] =
+              std::min(distance[i][j], distance[i][k] + distance[k][j]);
+  return distance;
+}
+
+/*
+ * Hex encoding.
+ */
+
+static constexpr char hex_lower[17] = "0123456789abcdef";
+
+inline char* hex(char* buf, const uint8_t data) {
+  *(buf++) = hex_lower[data >> 4];
+  *(buf++) = hex_lower[data & 0x0F];
+  return buf;
+}
+
+inline char* hex(char* buf, const void* data, size_t len) {
+  const uint8_t* p = static_cast<const uint8_t*>(data);
+  while (len--) buf = hex(buf, *p++);
+  return buf;
+}
+
+inline char* hex(char* buf, const void* data, size_t len,
+                 const bool little_endian) {
+  if (!little_endian) return hex(buf, data, len);
+  const uint8_t* p = static_cast<const uint8_t*>(data);
+  p += len - 1;
+  while (len--) buf = hex(buf, *p--);
+  return buf;
+}
+
+inline std::ostream& hex(std::ostream& os, const uint8_t data) {
+  os.put(hex_lower[(data >> 4)]);
+  os.put(hex_lower[data & 0x0F]);
+  return os;
+}
+
+inline std::ostream& hex(std::ostream& os, const void* data, size_t len) {
+  const char* p = static_cast<const char*>(data);
+  while (len--) hex(os, *p++);
+  return os;
+}
+
+inline std::ostream& hex(std::ostream& os, const void* data, size_t len,
+                         const bool little_endian) {
+  if (!little_endian) return hex(os, data, len);
+  const uint8_t* p = static_cast<const uint8_t*>(data);
+  p += len - 1;
+  while (len--) hex(os, *p--);
+  return os;
+}
+
+inline std::string hex(const void* data, size_t len) {
+  char buf[len * 2];
+  hex(&buf[0], data, len);
+  return std::string(buf, len * 2);
+}
+
+template <typename T>
+inline std::string hex(T value) {
+  static const size_t len = sizeof(T) * 2;
+  char buf[len];
+  hex(&buf[0], &value, sizeof(T), true);
+  return std::string(buf, len);
+}
+
+// Computes CRC32 checksums.
+template <typename T = uint_fast32_t, T Polynomial = 0xEDB88320>
+class CRC32 {
+  T crc_ = 0;
+
+  static std::array<T, 256> gen_table() {
+    T p = Polynomial;
+    std::array<T, 256> table = {};
+    for (T i = 0; i < 256; ++i) {
+      T c = i;
+      for (size_t j = 0; j < 8; j++) {
+        if (c & 1) {
+          c = p ^ (c >> 1);
+        } else {
+          c >>= 1;
+        }
+      }
+      table[i] = c;
+    }
+    return table;
+  }
+
+ public:
+  CRC32() = default;
+  CRC32(const T crc) : crc_(crc) {}
+  CRC32(const void* buf, size_t size) { update(buf, size); }
+
+  T sum() const { return crc_; }
+  void reset() { crc_ = 0; }
+  T operator*() const { return crc_; }
+  operator T() const { return crc_; }
+
+  std::string str() const { return hex(crc_); }
+
+  friend std::ostream& operator<<(std::ostream& os, CRC32 crc) {
+    return hex(os, crc.crc_);
+  }
+
+  T update(const void* buf, size_t size) {
+    static const auto table = gen_table();
+    crc_ ^= 0xFFFFFFFF;
+    const uint8_t* p = static_cast<const uint8_t*>(buf);
+    while (size--) crc_ = table[(crc_ ^ *p++) & 0xff] ^ (crc_ >> 8);
+    return crc_ ^= 0xFFFFFFFF;
+  }
+};
+
+#define DEFINE_DIGEST(class_name, digest_size)                       \
+  class class_name {                                                 \
+    CC_##class_name##_CTX ctx_;                                      \
+                                                                     \
+   public:                                                           \
+    class Digest {                                                   \
+      unsigned char data_[32];                                       \
+                                                                     \
+     public:                                                         \
+      int size() const;                                              \
+      std::string str() const;                                       \
+                                                                     \
+      unsigned char operator[](const int i) const;                   \
+      friend bool operator==(const Digest& lhs, const Digest& rhs);  \
+      friend bool operator!=(const Digest& lhs, const Digest& rhs);  \
+      friend std::ostream& operator<<(std::ostream&, const Digest&); \
+                                                                     \
+      friend class class_name;                                       \
+    };                                                               \
+                                                                     \
+    class_name();                                                    \
+    class_name(const void* data, size_t len);                        \
+    class_name(const char* str);                                     \
+    class_name(const std::string& str);                              \
+                                                                     \
+    void update(const void* data, size_t len);                       \
+    void update(const char* str);                                    \
+    void update(const std::string& str);                             \
+    void reset();                                                    \
+    Digest sum() const;                                              \
+    std::string str() const;                                         \
+                                                                     \
+    Digest operator()() const;                                       \
+  };
+
+DEFINE_DIGEST(SHA1, 20);
+DEFINE_DIGEST(SHA256, 32);
 
 }  // namespace aoc
 

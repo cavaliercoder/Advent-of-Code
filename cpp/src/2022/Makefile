@@ -1,30 +1,32 @@
-SOLUTIONS = $(patsubst %.cc, %.o, $(wildcard day*.cc))
-
-LIBAOC = aoc.o
-LIBAOC_SOURCES = ../lib/aoc.cc
-LIBAOC_HEADERS = ../lib/aoc.h
-
-BIN = aoc2022
-BIN_SOURCES = aoc2022.cc
-
 CXX = clang++
 CXX_FLAGS = --std=c++17 -I../
 
+
+LIBAOC_HEADERS = $(wildcard ../lib/*.h)
+LIBAOC_SOURCES = $(wildcard ../lib/*.cc)
+LIBAOC_OBJECTS = $(patsubst ../lib/%.cc, %.o, $(LIBAOC_SOURCES))
+
+SOLUTION_SOURCES = $(wildcard day*.cc)
+SOLUTION_OBJECTS = $(patsubst %.cc, %.o, $(SOLUTION_SOURCES))
+
+BIN = aoc2022
+BIN_SOURCES = $(LIBAOC_OBJECTS) $(SOLUTION_OBJECTS)
+
 all: $(BIN)
 
-%.o: %.cc $(LIBAOC_HEADERS)
+%.o: %.cc
 	$(CXX) $(CXX_FLAGS) -o $@ -c $<
 
-$(LIBAOC): $(LIBAOC_SOURCES) $(LIBAOC_HEADERS)
-	$(CXX) $(CXX_FLAGS) -c -o $@ $(LIBAOC_SOURCES)
+%.o: ../lib/%.cc
+	$(CXX) $(CXX_FLAGS) -o $@ -c $<
 
-$(BIN): $(BIN_SOURCES) $(LIBAOC) $(SOLUTIONS)
+$(BIN): $(BIN_SOURCES)
 	$(CXX) $(CXX_FLAGS) -o $@ $^
 
 check: $(BIN)
 	./$(BIN)
 
 clean:
-	rm -f $(BIN) $(LIBAOC) $(SOLUTIONS)
+	rm -f $(BIN) $(LIBAOC_OBJECTS) $(SOLUTION_OBJECTS)
 
 .PHONY: all check clean
