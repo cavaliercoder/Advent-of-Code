@@ -1,32 +1,44 @@
 CXX = clang++
-CXX_FLAGS = --std=c++17 -I../
+CXX_FLAGS = --std=c++17 -O3 -I../
 
 
-LIBAOC_HEADERS = $(wildcard ../lib/*.h)
-LIBAOC_SOURCES = $(wildcard ../lib/*.cc)
-LIBAOC_OBJECTS = $(patsubst ../lib/%.cc, %.o, $(LIBAOC_SOURCES))
+LIBAOC_HDRS = $(wildcard ../lib/*.h)
+LIBAOC_SRCS = $(wildcard ../lib/*.cc)
+LIBAOC_OBJS = $(patsubst ../lib/%.cc, %.o, $(LIBAOC_SRCS))
 
-SOLUTION_SOURCES = $(wildcard day*.cc)
-SOLUTION_OBJECTS = $(patsubst %.cc, %.o, $(SOLUTION_SOURCES))
+SOLUTION_SRCS = $(wildcard day*.cc)
+SOLUTION_OBJS = $(patsubst %.cc, %.o, $(SOLUTION_SRCS))
 
 BIN = aoc2022
-BIN_SOURCES = $(LIBAOC_OBJECTS) $(SOLUTION_OBJECTS)
+BIN_SRCS = $(LIBAOC_HDRS) $(LIBAOC_OBJS) $(SOLUTION_OBJS)
+BIN_DEPS = $(LIBAOC_OBJS) $(SOLUTION_OBJS)
 
 all: $(BIN)
 
 %.o: %.cc
 	$(CXX) $(CXX_FLAGS) -o $@ -c $<
 
+#
+# libaoc
+#
+
 %.o: ../lib/%.cc
 	$(CXX) $(CXX_FLAGS) -o $@ -c $<
 
-$(BIN): $(BIN_SOURCES)
-	$(CXX) $(CXX_FLAGS) -o $@ $^
+testing.o: ../lib/testing.cc
+	$(CXX) $(CXX_FLAGS) -o $@ -c -DINCLUDE_TEST_RUNNER $<
+
+#
+# aoc2022
+#
+
+$(BIN): $(BIN_SRCS)
+	$(CXX) $(CXX_FLAGS) -o $@ $(BIN_DEPS)
 
 check: $(BIN)
 	./$(BIN)
 
 clean:
-	rm -f $(BIN) $(LIBAOC_OBJECTS) $(SOLUTION_OBJECTS)
+	rm -f $(BIN) $(LIBAOC_OBJS) $(SOLUTION_OBJS)
 
 .PHONY: all check clean
