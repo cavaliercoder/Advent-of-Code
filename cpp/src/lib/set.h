@@ -6,8 +6,8 @@
 
 namespace aoc {
 
-template <typename T>
-class Set : public std::unordered_set<T> {
+template <class T, class Hash = std::hash<T>>
+class Set : public std::unordered_set<T, Hash> {
  public:
   bool contains(const T& elem) { return this->count(elem); }
 

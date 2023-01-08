@@ -2,9 +2,13 @@
 
 namespace aoc {
 
-void Input::set_err() { err_ = true; }
+void Input::set_err() {
+  err_ = true;
+  ;
+}
 
-Input::Input(const int year, const int day) : year_(year), day_(day) {
+Input::Input(const int year, const int day, const std::string& suffix)
+    : year_(year), day_(day) {
   std::ostringstream ss;
   // TODO: Recurse up until ./inputs is found
   ss << "../../../inputs/" << year << "/day";
@@ -13,6 +17,7 @@ Input::Input(const int year, const int day) : year_(year), day_(day) {
   } else {
     ss << day;
   }
+  if (!suffix.empty()) ss << "-" << suffix;
   ss << ".txt";
   path_ = ss.str();
   in_.open(path_);

@@ -21,7 +21,8 @@ class Input {
  public:
   Input() = delete;
   Input(Input&&) = default;
-  Input(const int year, const int day);
+  // Input(const int year, const int day);
+  Input(const int year, const int day, const std::string& suffix = "");
   ~Input();
 
   int year() const;
