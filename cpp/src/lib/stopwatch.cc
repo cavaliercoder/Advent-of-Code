@@ -1,8 +1,11 @@
 #include "stopwatch.h"
 
+#include <iostream>
+#include <sstream>
+
 namespace aoc {
 
-uint64_t Stopwatch::now() {
+static uint64_t now() {
   return std::chrono::duration_cast<std::chrono::nanoseconds>(
              std::chrono::steady_clock::now().time_since_epoch())
       .count();
@@ -19,18 +22,29 @@ uint64_t Stopwatch::stop() {
   return duration();
 }
 
-uint64_t Stopwatch::duration() {
+uint64_t Stopwatch::duration() const {
   if (!start_) return 0;
   if (!stop_) return now() - start_;
   return stop_ - start_;
 }
 
+std::string Stopwatch::str() const {
+  std::stringstream ss;
+  auto d = duration();
+  if (d < 1000) {
+    ss << d << "ns";
+  } else if (d < 1000000) {
+    ss << d / 1000 << "us";
+  } else if (d < 2000000000) {
+    ss << d / 1000000 << "ms";
+  } else {
+    ss << d / 1000000000 << "s";
+  }
+  return ss.str();
+}
+
 std::ostream& operator<<(std::ostream& os, Stopwatch& sw) {
-  auto d = sw.duration();
-  if (d < 1000) return os << d << "ns";
-  if (d < 1000000) return os << d / 1000 << "µs";
-  if (d < 2000000000) return os << d / 1000000 << "ms";
-  return os << d / 1000000000 << "s";
+  return os << sw.str();
 }
 
 }  // namespace aoc

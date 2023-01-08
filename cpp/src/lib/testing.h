@@ -39,10 +39,11 @@ class BaseTest {
   virtual int line() const = 0;
   virtual void run() = 0;
 
+  std::string str() const;
   const std::vector<Error> errv() const;
   operator bool() const;
-
   bool operator<(const BaseTest& rhs) const;
+  friend std::ostream& operator<<(std::ostream& os, BaseTest& t);
 };
 
 struct BaseTestFactory {

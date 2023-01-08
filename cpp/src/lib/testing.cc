@@ -1,5 +1,9 @@
 #include "testing.h"
 
+#include <algorithm>
+#include <iomanip>
+#include <iostream>
+
 #include "stopwatch.h"
 
 namespace aoc {
@@ -15,6 +19,16 @@ bool BaseTest::operator<(const BaseTest& rhs) const {
   if (suite() < rhs.suite()) return true;
   if (suite() == rhs.suite()) return name() < rhs.name();
   return false;
+}
+
+std::string BaseTest::str() const {
+  std::stringstream ss;
+  ss << suite() << "::" << name();
+  return ss.str();
+}
+
+std::ostream& operator<<(std::ostream& os, BaseTest& t) {
+  return os << t.str();
 }
 
 /*
@@ -49,27 +63,31 @@ std::vector<BaseTest*> TestRunner::make() {
 int TestRunner::run() {
   int errc = 0;
   auto tests = make();
+  int col_width = 20;
+  for (auto& t : tests) col_width = std::max(col_width, int(t->str().size()));
+
   Stopwatch sw, sw_all;
   sw_all.start();
   for (int i = 0; i < tests.size(); ++i) {
     auto test = tests[i];
-    std::cout << test->suite() << "::" << test->name();
+    std::cout << std::left << std::setw(col_width + 2) << test->str();
     sw.start();
     test->run();
     sw.stop();
-    std::cout << " " << sw;
+    std::cout << std::right << std::setw(7) << sw;
+    std::cout << std::right << std::setw(18);
     if (*test) {
-      std::cout << " [\u001b[32mPASS\u001b[0m]\n";
+      std::cout << "[\u001b[32mPASS\u001b[0m]\n";
     } else {
       ++errc;
-      std::cout << " [\u001b[31mFAIL\u001b[0m]\n";
+      std::cout << "[\u001b[31mFAIL\u001b[0m]\n";
       for (auto& err : test->errv()) {
         std::cout << "  " << err.file << ":" << err.line
                   << " Expression evaluates to false: " << err.expr << " "
                   << err.op << " " << err.expect << "\n"
                   << "    " << err.expr << " → " << err.actual << "\n";
       }
-      std::cout << "\n";
+      std::cout << std::endl;
     }
   }
   sw_all.stop();

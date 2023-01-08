@@ -10,12 +10,11 @@ class Stopwatch {
   uint64_t start_ = 0;
   uint64_t stop_ = 0;
 
-  uint64_t now();
-
  public:
   void start();
   uint64_t stop();
-  uint64_t duration();
+  uint64_t duration() const;
+  std::string str() const;
   friend std::ostream& operator<<(std::ostream& os, Stopwatch& sw);
 };
 
