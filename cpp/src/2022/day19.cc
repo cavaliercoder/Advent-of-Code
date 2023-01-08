@@ -33,18 +33,13 @@ class Day19 {
   }
     BILL_CMP(==)
     BILL_CMP(>=)
-
-    friend std::ostream& operator<<(std::ostream& os, const Bill& bill) {
-      os << "{" << bill[0];
-      for (int i = 1; i < 4; ++i) os << ", " << bill[i];
-      return os << "}";
-    }
   };
 
   struct Blueprint {
     int id;
     Bill costs[4];
-    Bill limit;
+    Bill limits;
+
     Bill& operator[](const int i) { return costs[i]; }
   };
 
@@ -53,25 +48,9 @@ class Day19 {
     Bill yield;
     int ttl;
 
-    // Hasher for std::unordered_set
-    std::size_t operator()(const State& p) const noexcept {
-      std::size_t h = 0;
-      h ^= std::hash<int>()(p.ttl);
-      for (int i = 0; i < 4; ++i) {
-        h ^= (std::hash<int>()(p.balance[i]));
-        h ^= (std::hash<int>()(p.yield[i]));
-      }
-      return h;
-    }
-
     friend bool operator==(const State& lhs, const State& rhs) {
       return lhs.balance == rhs.balance && lhs.yield == rhs.yield &&
              lhs.ttl == rhs.ttl;
-    }
-
-    friend std::ostream& operator<<(std::ostream& os, const State& state) {
-      return os << "Balance: " << state.balance << ", Yield: " << state.yield
-                << ", TTL: " << state.ttl;
     }
   };
 
@@ -92,48 +71,43 @@ class Day19 {
           .get_uint(b[Geodes][Obsidian]);
       in.expect(" obsidian.\n");
 
-      // Compute maximum desired robot count
+      // Compute maximum desired robot counts.
       for (int i = 0; i < 4; ++i) {
         for (int j = 0; j < 4; ++j) {
-          b.limit[i] = std::max(b.limit[i], b.costs[j][i]);
+          b.limits[i] = std::max(b.limits[i], b.costs[j][i]);
         }
       }
-      b.limit[Geodes] = INT_MAX;
-
+      b.limits[Geodes] = INT_MAX;
       blueprints.push_back(b);
     }
     return blueprints;
   }
 
-  int crack_geodes(Blueprint& blueprint, const int ttl) {
+  int crack_geodes(Blueprint& bp, const int ttl) {
     int best = 0;
     std::stack<State> Q = {};
-    // aoc::Set<State, State> seen = {};
     Q.push({{}, {1}, ttl});
     while (!Q.empty()) {
       auto state = Q.top();
       Q.pop();
-      // seen.insert(state);
       best = std::max(best, state.balance[Geodes]);
+      if (!state.ttl) continue;
 
-      // std::cout << state << ", Best: " << best << ", Stack: " << Q.size()
-      //           << ", Seen: " << seen.size() << "\n";
+      // Prune branches that could never improve on the best score.
+      int maximal = state.balance[Geodes] + (state.ttl * state.yield[Geodes]) +
+                    ((state.ttl * state.ttl) / 2);
+      if (maximal < best) continue;
 
-      if (!state.ttl) {
-        continue;
-      };
-
-      // Try buy each robot.
+      // Build each robot when next available.
       for (int i = 0; i < 4; ++i) {
-        if (state.yield[i] >= blueprint.limit[i]) continue;
-        Bill cost = blueprint.costs[i];
+        if (state.yield[i] >= bp.limits[i]) continue;
+        Bill cost = bp.costs[i];
         State next = state;
         while (next.ttl) {
           if (next.balance >= cost) {
             --next.ttl;
             next.balance = next.balance + next.yield - cost;
             ++next.yield[i];
-            // if (!seen.count(next))
             Q.push(next);
             break;
           }
@@ -141,14 +115,6 @@ class Day19 {
           next.balance = next.balance + next.yield;
         }
       }
-
-      // Wait out the ttl.
-      State next = state;
-      while (next.ttl) {
-        --next.ttl;
-        next.balance = next.balance + next.yield;
-      }
-      Q.push(next);
     }
     return best;
   }
