@@ -88,14 +88,14 @@ struct TestRunner {
           aoc::Error(#expr, #op, #expect, actual, __FILE__, __LINE__)); \
   }
 
+#define EXPECT_TRUE(expr) EXPECT(expr, ==, 1)
+#define EXPECT_FALSE(expr) EXPECT(expr, ==, 0)
 #define EXPECT_EQ(a, b) EXPECT(a, ==, b)
 #define EXPECT_NE(a, b) EXPECT(a, !=, b)
 #define EXPECT_LT(a, b) EXPECT(a, <, b)
 #define EXPECT_GT(a, b) EXPECT(a, >, b)
 #define EXPECT_LE(a, b) EXPECT(a, <=, b)
 #define EXPECT_GE(a, b) EXPECT(a, >=, b)
-#define EXPECT_TRUE(expr) EXPECT(expr, ==, 1)
-#define EXPECT_FALSE(expr) EXPECT(expr, ==, 0)
 
 }  // namespace aoc
 
