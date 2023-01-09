@@ -16,49 +16,93 @@ class Day20 {
     return a;
   }
 
+  struct Node {
+    const int64_t id;
+    const int64_t value;
+
+    Node* prev;
+    Node* next;
+
+    Node(const int64_t id, const int64_t value) : id(id), value(value) {}
+
+    void remove() {
+      prev->next = next;
+      next->prev = prev;
+      next = nullptr;
+      prev = nullptr;
+    }
+
+    void insert(Node* after) {
+      prev = after;
+      next = after->next;
+      next->prev = this;
+      after->next = this;
+    }
+
+    Node* nextn(const int64_t n) {
+      Node* node = this;
+      for (uint64_t i = 0; i < std::abs(n); ++i) {
+        if (n > 0) {
+          node = node->next;
+        } else {
+          node = node->prev;
+        }
+      }
+      return node;
+    }
+
+    Node* find_value(const int64_t v) {
+      if (value == v) return this;
+      for (auto n = next;; n = n->next) {
+        if (n->value == v) return n;
+        assert(n != this);
+      }
+    }
+  };
+
+  std::unordered_map<int64_t, Node*> make_nodes(const std::vector<int64_t>& a,
+                                                const int64_t key = 1) {
+    std::unordered_map<int64_t, Node*> nodes;
+    auto first = new Node(0, a[0] * key);
+    nodes[0] = first;
+    auto prev = first;
+    for (int i = 1; i < a.size(); ++i) {
+      auto node = new Node(i, a[i] * key);
+      nodes[i] = node;
+      prev->next = node;
+      node->prev = prev;
+      prev = node;
+    }
+    prev->next = first;
+    first->prev = prev;
+    return nodes;
+  }
+
   int64_t mix(std::vector<int64_t>& a, const int rounds = 1,
               const int64_t key = 1) {
     int64_t len = a.size() - 1;
-    std::unordered_map<int64_t, int64_t> m;  // old -> new
-    for (int64_t i = 0; i < a.size(); ++i) {
-      a[i] *= key;
-      m[i] = i;
-    }
+    auto nodes = make_nodes(a, key);
+    Node* zero = nullptr;
     for (int r = 0; r < rounds; ++r) {
+      std::cout << "Round " << r + 1 << "...\n";
       for (int64_t id = 0; id < a.size(); ++id) {
-        int64_t delta = a[id];
-        int64_t src = m[id];
-        int64_t dst = (src + delta) % len;
-        if (dst < 0) dst += len;
-        assert(dst >= 0 && dst < len);
-        if (src < dst) {
-          for (auto& [_, i] : m)
-            if (i > src && i <= dst) --i;
-        } else if (dst < src) {
-          for (auto& [_, i] : m)
-            if (i >= dst && i < src) ++i;
-        }
-        m[id] = dst;
+        auto n = nodes[id];
+        if (n->value == 0) zero = n;
+        auto after = n->prev;
+        n->remove();
+        after = after->nextn(n->value % len);
+        n->insert(after);
       }
     }
 
-    // Apply new positions
-    auto b = std::vector<int64_t>(a.size(), INT_MAX);
-    for (auto [id, i] : m) b[i] = a[id];
-    a = b;
-    return score(a);
-  }
-
-  int64_t score(std::vector<int64_t>& a) {
-    for (int i = 0; i < a.size(); ++i) {
-      if (a[i] != 0) continue;
-      int64_t sum = 0;
-      sum += a[(1000 + i) % a.size()];
-      sum += a[(2000 + i) % a.size()];
-      sum += a[(3000 + i) % a.size()];
-      return sum;
-    }
-    return 0;
+    uint64_t sum = 0;
+    zero = zero->nextn(1000 % a.size());
+    sum += zero->value;
+    zero = zero->nextn(1000 % a.size());
+    sum += zero->value;
+    zero = zero->nextn(1000 % a.size());
+    sum += zero->value;
+    return sum;
   }
 
  public:
