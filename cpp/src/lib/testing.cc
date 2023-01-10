@@ -122,9 +122,9 @@ int TestRunner::run() {
 /*
  * Optional main entry-point.
  *
- * Compile with -DINCLUDE_TEST_RUNNER to enable.
+ * Compile with -DTEST_MAIN to enable.
  */
 
-#ifdef INCLUDE_TEST_RUNNER
+#ifdef TEST_MAIN
 int main(int argc, char* argv[]) { return aoc::TestRunner::run(); }
 #endif

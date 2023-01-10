@@ -127,42 +127,42 @@ struct TestRunner {
   static int run();
 };
 
+// Returns a classname for the given suite and test case.
 #define TEST_CLASS_NAME(suite_name, test_name) suite_name##test_name##Test
 
-#define TEST(suite_name, test_name)                                            \
-  class TEST_CLASS_NAME(suite_name, test_name) : public aoc::BaseTest {        \
-   private:                                                                    \
-    static const int id_;                                                      \
-    std::string name() const override { return #test_name; }                   \
-    std::string suite() const override { return #suite_name; }                 \
-    std::string file() const override { return __FILE__; }                     \
-    int line() const override { return __LINE__; }                             \
-    void run() override;                                                       \
-    void test_body();                                                          \
-                                                                               \
-    static void signal_handler(const int sig);                                 \
-  };                                                                           \
-                                                                               \
-  const int TEST_CLASS_NAME(suite_name, test_name)::id_ =                      \
-      aoc::TestRunner::register_ctor(                                          \
-          new aoc::TestFactory<TEST_CLASS_NAME(suite_name, test_name)>());     \
-                                                                               \
-  void TEST_CLASS_NAME(suite_name, test_name)::signal_handler(const int sig) { \
-    std::stringstream ss;                                                      \
-    ss << "Caught signal: " << sig;                                            \
-    throw aoc::TestError(ss.str(), __FILE__, __LINE__);                        \
-  }                                                                            \
-                                                                               \
-  void TEST_CLASS_NAME(suite_name, test_name)::run() {                         \
-    signal(TEST_CLASS_NAME(suite_name, test_name)::signal_handler);            \
-    try {                                                                      \
-      WRAP_(test_body());                                                      \
-    } catch (aoc::TestError e) {                                               \
-      errv_.push_back(e);                                                      \
-    }                                                                          \
-    signal(SIG_DFL);                                                           \
-  }                                                                            \
-                                                                               \
+// Generates a test class declaration and registers it with the test runner.
+#define TEST(suite_name, test_name)                                        \
+  class TEST_CLASS_NAME(suite_name, test_name) : public aoc::BaseTest {    \
+   private:                                                                \
+    static const int id_;                                                  \
+    std::string name() const override { return #test_name; }               \
+    std::string suite() const override { return #suite_name; }             \
+    std::string file() const override { return __FILE__; }                 \
+    int line() const override { return __LINE__; }                         \
+                                                                           \
+    static void signal_handler(const int sig) {                            \
+      std::stringstream ss;                                                \
+      ss << "Caught signal: " << sig;                                      \
+      throw aoc::TestError(ss.str(), __FILE__, __LINE__);                  \
+    }                                                                      \
+                                                                           \
+    void run() override {                                                  \
+      signal(TEST_CLASS_NAME(suite_name, test_name)::signal_handler);      \
+      try {                                                                \
+        WRAP_(test_body());                                                \
+      } catch (aoc::TestError e) {                                         \
+        errv_.push_back(e);                                                \
+      }                                                                    \
+      signal(SIG_DFL);                                                     \
+    }                                                                      \
+                                                                           \
+    void test_body();                                                      \
+  };                                                                       \
+                                                                           \
+  const int TEST_CLASS_NAME(suite_name, test_name)::id_ =                  \
+      aoc::TestRunner::register_ctor(                                      \
+          new aoc::TestFactory<TEST_CLASS_NAME(suite_name, test_name)>()); \
+                                                                           \
   void TEST_CLASS_NAME(suite_name, test_name)::test_body()
 
 #define EXPECT(expr, op, expect)                                             \

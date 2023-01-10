@@ -1,5 +1,5 @@
 CXX = clang++
-CXX_FLAGS = --std=c++17 -g -O3 -I../
+CXX_FLAGS = --std=c++17 -O3 -I../
 
 
 LIBAOC_HDRS = $(wildcard ../lib/*.h)
@@ -26,7 +26,7 @@ all: $(BIN)
 	$(CXX) $(CXX_FLAGS) -o $@ -c $<
 
 testing.o: ../lib/testing.cc
-	$(CXX) $(CXX_FLAGS) -o $@ -c -DINCLUDE_TEST_RUNNER $<
+	$(CXX) $(CXX_FLAGS) -o $@ -c -DTEST_MAIN $<
 
 #
 # aoc2022
