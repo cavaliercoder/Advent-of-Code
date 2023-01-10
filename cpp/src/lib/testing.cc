@@ -9,10 +9,23 @@
 namespace aoc {
 
 /*
+ * TestError implementation.
+ */
+
+TestError::TestError(const std::string msg, const std::string file,
+                     const int line)
+    : msg_(msg), file_(file), line_(line) {}
+
+const std::string TestError::msg() const { return msg_; }
+const std::string TestError::file() const { return file_; }
+int TestError::line() const { return line_; }
+char* TestError::what() { return msg_.data(); }
+
+/*
  * BaseTest implementation.
  */
 
-const std::vector<Error> BaseTest::errv() const { return errv_; }
+const std::vector<TestError> BaseTest::errv() const { return errv_; }
 BaseTest::operator bool() const { return errv_.empty(); }
 
 bool BaseTest::operator<(const BaseTest& rhs) const {
@@ -35,8 +48,10 @@ std::ostream& operator<<(std::ostream& os, BaseTest& t) {
  * Test runner.
  */
 
-// Wraps the global test factory list in a static function to avoid the
-// Static Initialization Order Fiasco.
+// Returns a global test factory list.
+//
+// Wrapped in a static function to avoid creating a Static Initialization Order
+// Fiasco.
 //
 // Ref: https://en.cppreference.com/w/cpp/language/siof.
 static std::vector<const BaseTestFactory*>& factories() {
@@ -82,10 +97,13 @@ int TestRunner::run() {
       ++errc;
       std::cout << "[\u001b[31mFAIL\u001b[0m]\n";
       for (auto& err : test->errv()) {
-        std::cout << "  " << err.file << ":" << err.line
-                  << " Expression evaluates to false: " << err.expr << " "
-                  << err.op << " " << err.expect << "\n"
-                  << "    " << err.expr << " → " << err.actual << "\n";
+        std::cout << "  ";
+        if (!err.file().empty()) {
+          std::cout << err.file();
+          if (err.line()) std::cout << ":" << err.line();
+          std::cout << " ";
+        }
+        std::cout << err.msg() << "\n";
       }
       std::cout << std::endl;
     }
@@ -107,21 +125,21 @@ int TestRunner::run() {
 #include <stdlib.h>
 #include <unistd.h>
 
-void handler(int sig) {
-  void* array[10];
-  size_t size;
+// void handler(int sig) {
+//   void* array[10];
+//   size_t size;
 
-  // get void*'s for all entries on the stack
-  size = backtrace(array, 10);
+//   // get void*'s for all entries on the stack
+//   size = backtrace(array, 10);
 
-  // print out all the frames to stderr
-  fprintf(stderr, "Error: signal %d:\n", sig);
-  backtrace_symbols_fd(array, size, STDERR_FILENO);
-  exit(1);
-}
+//   // print out all the frames to stderr
+//   fprintf(stderr, "Error: signal %d:\n", sig);
+//   backtrace_symbols_fd(array, size, STDERR_FILENO);
+//   exit(1);
+// }
 
 int main(int argc, char* argv[]) {
-  signal(SIGSEGV, handler);
+  // signal(SIGSEGV, handler);
   return aoc::TestRunner::run();
 }
 
