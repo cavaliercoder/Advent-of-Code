@@ -150,14 +150,14 @@ struct TestRunner {
   }                                                                            \
                                                                                \
   void TEST_CLASS_NAME(suite_name, test_name)::run() {                         \
-    std::signal(SIGINT,                                                        \
+    std::signal(SIGSEGV,                                                       \
                 TEST_CLASS_NAME(suite_name, test_name)::signal_handler);       \
     try {                                                                      \
       WRAP_(test_body());                                                      \
     } catch (aoc::TestError e) {                                               \
       errv_.push_back(e);                                                      \
     }                                                                          \
-    std::signal(SIGINT, SIG_DFL);                                              \
+    std::signal(SIGSEGV, SIG_DFL);                                             \
   }                                                                            \
                                                                                \
   void TEST_CLASS_NAME(suite_name, test_name)::test_body()

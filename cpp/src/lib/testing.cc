@@ -45,7 +45,7 @@ std::ostream& operator<<(std::ostream& os, BaseTest& t) {
 }
 
 /*
- * Test runner.
+ * Test runner implementation.
  */
 
 // Returns a global test factory list.
@@ -66,9 +66,7 @@ int TestRunner::register_ctor(const BaseTestFactory* factory) {
 
 std::vector<BaseTest*> TestRunner::make() {
   std::vector<BaseTest*> tests;
-  for (auto& factory : factories()) {
-    tests.push_back(factory->make());
-  }
+  for (auto& factory : factories()) tests.push_back(factory->make());
   std::sort(
       tests.begin(), tests.end(),
       [](const BaseTest* a, const BaseTest* b) -> bool { return *a < *b; });
@@ -80,7 +78,6 @@ int TestRunner::run() {
   auto tests = make();
   int col_width = 20;
   for (auto& t : tests) col_width = std::max(col_width, int(t->str().size()));
-
   Stopwatch sw, sw_all;
   sw_all.start();
   for (int i = 0; i < tests.size(); ++i) {
@@ -117,30 +114,12 @@ int TestRunner::run() {
 
 }  // namespace aoc
 
+/*
+ * Optional main entry-point.
+ *
+ * Compile with -DINCLUDE_TEST_RUNNER to enable.
+ */
+
 #ifdef INCLUDE_TEST_RUNNER
-
-#include <execinfo.h>
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-// void handler(int sig) {
-//   void* array[10];
-//   size_t size;
-
-//   // get void*'s for all entries on the stack
-//   size = backtrace(array, 10);
-
-//   // print out all the frames to stderr
-//   fprintf(stderr, "Error: signal %d:\n", sig);
-//   backtrace_symbols_fd(array, size, STDERR_FILENO);
-//   exit(1);
-// }
-
-int main(int argc, char* argv[]) {
-  // signal(SIGSEGV, handler);
-  return aoc::TestRunner::run();
-}
-
+int main(int argc, char* argv[]) { return aoc::TestRunner::run(); }
 #endif
