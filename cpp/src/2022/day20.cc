@@ -17,13 +17,15 @@ class Day20 {
   }
 
   struct Node {
-    const int64_t id;
-    const int64_t value;
+    const int64_t id = 0;
+    const int64_t value = 0;
 
-    Node* prev;
-    Node* next;
+    Node* prev = nullptr;
+    Node* next = nullptr;
 
     Node(const int64_t id, const int64_t value) : id(id), value(value) {}
+
+    ~Node() {}  // TODO
 
     void remove() {
       prev->next = next;
@@ -39,7 +41,7 @@ class Day20 {
       after->next = this;
     }
 
-    Node* nextn(const int64_t n) {
+    Node* nextn(int64_t n) {
       Node* node = this;
       for (uint64_t i = 0; i < std::abs(n); ++i) {
         if (n > 0) {
@@ -49,14 +51,6 @@ class Day20 {
         }
       }
       return node;
-    }
-
-    Node* find_value(const int64_t v) {
-      if (value == v) return this;
-      for (auto n = next;; n = n->next) {
-        if (n->value == v) return n;
-        assert(n != this);
-      }
     }
   };
 
@@ -84,7 +78,6 @@ class Day20 {
     auto nodes = make_nodes(a, key);
     Node* zero = nullptr;
     for (int r = 0; r < rounds; ++r) {
-      std::cout << "Round " << r + 1 << "...\n";
       for (int64_t id = 0; id < a.size(); ++id) {
         auto n = nodes[id];
         if (n->value == 0) zero = n;

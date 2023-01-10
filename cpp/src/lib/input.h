@@ -21,7 +21,6 @@ class Input {
  public:
   Input() = delete;
   Input(Input&&) = default;
-  // Input(const int year, const int day);
   Input(const int year, const int day, const std::string& suffix = "");
   ~Input();
 
@@ -48,17 +47,26 @@ class Input {
   Input& get_token(std::string& s);
   std::string get_token();
 
-  // Extract the next character if it equals c.
+  // Extract the next character and returns true if it is equal to c.
   bool branch(const char c);
 
+  // Extracts the next n characters and sets the error flag if any of them are
+  // not equal to c.
   Input& expect(const char c, const std::streamsize n = 1);
 
+  // Extracts the next strlen(str) characters and sets the error flag if they
+  // are not equal to str.
   Input& expect(const char* str);
 
+  // Extracts the next character if it is equal to c.
   Input& discard(const char c);
+
+  // Extracts the next characters until c is found or EOF.
   Input& discard_to(const char c);
+
   Input& ignore(std::streamsize n = 1, int delim = EOF);
 
+  // Returns true if the peek() == c.
   bool is(const char c);
   bool isdigit();
   bool isspace();
@@ -104,6 +112,7 @@ class Input {
     return *this;
   }
 
+  // Decodes the whole input file into a 2-dimensional grid.
   template <typename T>
   Grid<T> grid(std::function<T(const char c)> f) {
     std::vector<T> data;
@@ -117,6 +126,7 @@ class Input {
     return Grid<T>(width, data.size() / width, data);
   }
 
+  // Decodes the whole input file into a 2-dimensional grid of chars.
   Grid<char> grid();
 
   char operator*();

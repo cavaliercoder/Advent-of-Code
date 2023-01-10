@@ -2,10 +2,7 @@
 
 namespace aoc {
 
-void Input::set_err() {
-  err_ = true;
-  ;
-}
+void Input::set_err() { err_ = true; }
 
 Input::Input(const int year, const int day, const std::string& suffix)
     : year_(year), day_(day) {

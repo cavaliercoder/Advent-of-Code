@@ -1,19 +1,27 @@
 #ifndef AOC_RANGE_H
 #define AOC_RANGE_H
 
+#include <iostream>
+
 namespace aoc {
 
+// Range represents a contiguous set of values in range [start, limit).
+//
+// Limit is the first value outside the range.
 template <typename T>
 struct Range {
   T start = 0;  // First value in the range.
   T limit = 0;  // First value after the values in the range.
 
  public:
+  Range() = default;
+  Range(const T start, const T limit) : start(start), limit(limit) {}
+
   inline T size() const { return limit - start; }
   inline bool empty() const { return start == limit; }
 
-  inline T begin() const { return start; }
-  inline T end() const { return limit; }
+  inline Range begin() const { return {start, limit}; }
+  inline Range end() const { return {limit, limit}; }
 
   inline bool contains(const T n) const { return n >= start && n < limit; }
 
@@ -74,6 +82,14 @@ struct Range {
   inline friend Range operator|(const Range& lhs, const Range& rhs) {
     return lhs.outer(rhs);
   }
+
+  // Used for iteration.
+  inline Range operator++() {
+    ++start;
+    return *this;
+  }
+
+  inline T operator*() { return start; }
 
   inline operator bool() { return !empty(); }
 

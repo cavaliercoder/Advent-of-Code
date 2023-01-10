@@ -36,15 +36,6 @@ std::ostream& hex(std::ostream& os, const void* data, size_t len) {
   return os;
 }
 
-std::ostream& hex(std::ostream& os, const void* data, size_t len,
-                  const bool little_endian) {
-  if (!little_endian) return hex(os, data, len);
-  const uint8_t* p = static_cast<const uint8_t*>(data);
-  p += len - 1;
-  while (len--) hex(os, *p--);
-  return os;
-}
-
 std::string hex(const void* data, size_t len) {
   char buf[len * 2];
   hex(&buf[0], data, len);

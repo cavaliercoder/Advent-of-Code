@@ -9,6 +9,9 @@
 namespace aoc {
 
 // Grid is a container of elements arranged in a finite 2-dimensional space.
+//
+// Members may be accessed by index or x/y position. The y-axis increases as the
+// index increases. I.e. the y-axis increases in a downward direction.
 template <typename T = char>
 class Grid {
   using Point = Point<2, int>;
@@ -17,11 +20,13 @@ class Grid {
   int width_ = 0;
   int height_ = 0;
 
+  // Converts a point to an index.
   inline int ptoi(const Point p) const {
     if (!contains(p)) return size();
     return p.y() * width() + p.x();
   }
 
+  // Converts an index to a point.
   inline Point itop(const int i) const {
     if (!contains(i)) return {width(), height()};
     return Point(i % width(), i / width());
@@ -46,6 +51,7 @@ class Grid {
     return p.x() >= 0 && p.x() < width() && p.y() >= 0 && p.y() < height();
   }
 
+  // Returns the count of members equal to value.
   inline int count(const T value) const {
     int n = 0;
     for (int i = 0; i < size(); ++i)
@@ -116,8 +122,11 @@ class Grid {
       return *this;
     }
 
-    inline Iterator& move(const int n = 1) { return set(index() + n); }
-    inline Iterator& move(const Point p) { return set(point() + p); }
+    inline Iterator& move(const int offset = 1) {
+      return set(index() + offset);
+    }
+
+    inline Iterator& move(const Point offset) { return set(point() + offset); }
 
 #define GRID_ITER_MOVE(dir, x, y) \
   inline Iterator& dir(const int n = 1) { return move({x, y}); }
@@ -162,7 +171,16 @@ class Grid {
     }
   };
 
+  // Returns a random-access iterator to the first member of the grid.
+  //
+  // The first member is at index 0 and point {0, 0}.
   Iterator begin() const { return Iterator(this); }
+
+  // Returns a random-access iterator to the first position beyond the end of
+  // the grid.
+  //
+  // The end position is at index grid.size() and point {grid.width(),
+  // grid.height()}.
   Iterator end() const { return Iterator(this, size()); }
 
   inline T operator[](const Iterator& it) const { return data_[it.index()]; }

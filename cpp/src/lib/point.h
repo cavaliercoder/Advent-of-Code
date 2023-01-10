@@ -6,62 +6,87 @@
 
 namespace aoc {
 
+// Point represents an N-dimensional coordinate with components of type T.
 template <int N = 2, typename T = int>
 struct Point {
   T data[N] = {};
 
+  // Returns a point at {0, ...}.
   Point() = default;
 
+  // Returns a point with the given components.
   Point(std::initializer_list<T> init) {
     assert(init.size() == N);
     std::copy(init.begin(), init.end(), data);
   }
 
+  // Returns a 2-dimensional point at {x, y}.
   Point<2, T>(const int x, const int y) : Point{x, y} {};
 
+  // Returns a 3-dimensional point at {x, y, z}.
   Point<3, T>(const T x, const T y, const T z) : Point{x, y, z} {}
 
+  // Returns the x-component (width) of a point with at least one dimension.
   inline T x() const { return data[0]; }
+
+  // Returns the y-component (height) of a point with at least two dimensions.
   inline T y() const { return data[1]; }
+
+  // Returns the z-component (depth) of a point with at least three dimensions.
   inline T z() const { return data[2]; }
 
+  // Returns true if all components are zero.
   bool empty() const {
     for (int i = 0; i < N; ++i)
       if (data[i]) return false;
     return true;
   }
 
+  // Returns a new point where each component is the result of f(n).
   Point map(const std::function<T(T)>& f) const {
     Point p = {};
     for (int i = 0; i < N; ++i) p.data[i] = f(data[i]);
     return p;
   }
 
+  // Returns a new point where each component is the result of f(n, m).
   Point map(const Point p, const std::function<T(T, T)>& f) const {
     Point q = {};
     for (int i = 0; i < N; ++i) q.data[i] = f(data[i], p.data[i]);
     return q;
   }
 
+  // Returns a new point where each component is the absolute value of its
+  // old value.
   inline Point abs() const {
     return map([](const T n) -> T { return std::abs(n); });
   }
 
+  // Returns a new point where each component is the lower of the same component
+  // in this point and p.
   inline Point min(const Point p) const {
     return map(p, [](const T a, const T b) -> T { return std::min(a, b); });
   }
 
+  // Returns a new point where each component is the higher of the same
+  // component in this point and p.
   inline Point max(const Point p) const {
     return map(p, [](const T a, const T b) -> T { return std::max(a, b); });
   }
 
+  // Returns the Manhattan distance from this point to p.
   inline T manhattan(const Point p) const {
     T n = 0;
     for (int i = 0; i < N; ++i) n += std::abs(data[i] - p.data[i]);
     return n;
   }
 
-  // Increment each dimension toward p.
+  // Increment each component toward its complement in p.
+  //
+  // Once each component reaches its complement in p, it is no longer
+  // incremented.
+  //
+  // Calling p.nudge(p) always returns p.
   Point nudge(const Point p) const {
     return map(p, [](const T a, const T b) -> T {
       if (a < b) return std::min(a + 1, b);
@@ -90,15 +115,22 @@ struct Point {
   POINT_MOVE(forward, 2, +)
   POINT_MOVE(backward, 2, -)
 
+  // Returns the adjacent points immediately up, down, left and right.
   std::array<Point, 4> udlr() const { return {up(), down(), left(), right()}; }
 
+  // Returns the adjacent points immediately up, down, left, right, forward and
+  // back.
   std::array<Point, 6> udlrfb() const {
     return {up(), down(), left(), right(), forward(), backward()};
   }
 
+  // Negates each component.
   inline Point operator-() const {
     return map([](const T n) -> T { return -n; });
   }
+
+  // Returns true if any component is non-zero.
+  inline operator bool() { return !empty(); }
 
 #define POINT_ARITHMATIC(op)                                               \
   inline friend Point operator op(const Point lhs, const Point rhs) {      \

@@ -42,6 +42,10 @@ class Heap {
   bool empty() const { return data_.empty(); }
   std::size_t size() const { return data_.size(); }
 
+  // Implements the bool operator, so the heap can be used as follows:
+  //
+  //    while(heap) { auto p = heap.pop(); // do something }
+  //
   operator bool() const { return !data_.empty(); }
 };
 
