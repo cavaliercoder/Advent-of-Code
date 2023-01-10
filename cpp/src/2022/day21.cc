@@ -10,23 +10,62 @@ class Day21 {
     char op = 0;
     int64_t value = 0;
 
-    int64_t eval(std::unordered_map<std::string, Monkey>& all) {
+    int64_t eval(std::unordered_map<std::string, Monkey>& monkeys) {
       if (!op) return value;
-      auto a = all[lhs], b = all[rhs];
+      auto &a = monkeys[lhs], &b = monkeys[rhs];
       switch (op) {
         case '+':
-          return a.eval(all) + b.eval(all);
+          value = a.eval(monkeys) + b.eval(monkeys);
+          break;
         case '-':
-          return a.eval(all) - b.eval(all);
+          value = a.eval(monkeys) - b.eval(monkeys);
+          break;
         case '*':
-          return a.eval(all) * b.eval(all);
+          value = a.eval(monkeys) * b.eval(monkeys);
+          break;
         case '/':
-          return a.eval(all) / b.eval(all);
+          value = a.eval(monkeys) / b.eval(monkeys);
+          break;
       }
-      throw std::runtime_error("bad operator");
+      return value;
     }
 
-    friend std::ostream& operator<<(std::ostream& os, Monkey& m) {
+    // Return the left-hand side value required to eval to x.
+    int64_t solve_left(const int64_t solution,
+                       std::unordered_map<std::string, Monkey>& monkeys) const {
+      auto b = monkeys[rhs].value;
+      switch (op) {
+        case '+':
+          return solution - b;
+        case '-':
+          return solution + b;
+        case '*':
+          return solution / b;
+        case '/':
+          return solution * b;
+      }
+      return solution;
+    }
+
+    // Return the right-hand side value required to eval to x.
+    int64_t solve_right(
+        const int64_t solution,
+        std::unordered_map<std::string, Monkey>& monkeys) const {
+      auto a = monkeys[lhs].value;
+      switch (op) {
+        case '+':
+          return solution - a;
+        case '-':
+          return a - solution;
+        case '*':
+          return solution / a;
+        case '/':
+          return a / solution;
+      }
+      return solution;
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, const Monkey& m) {
       if (!m.op) {
         return os << m.id << ": " << m.value;
       }
@@ -52,17 +91,38 @@ class Day21 {
 
  public:
   int64_t Part1(aoc::Input in) {
-    auto all = parse(in);
-    return all["root"].eval(all);
+    auto monkeys = parse(in);
+    return monkeys["root"].eval(monkeys);
   }
 
-  int64_t Part2(aoc::Input in) { return 21; };
+  int64_t Part2(aoc::Input in) {
+    auto monkeys = parse(in);
+    monkeys["root"].eval(monkeys);
+
+    int64_t answer;
+    std::function<void(const std::string&, const std ::string&, const int64_t)>
+        solve = [&](const std::string& id, const std::string& needle,
+                    const int64_t solution) {
+          if (id == needle) answer = solution;
+          if (answer) return;
+          auto& m = monkeys[id];
+          if (!m.op) return;
+          solve(m.lhs, needle, m.solve_left(solution, monkeys));
+          solve(m.rhs, needle, m.solve_right(solution, monkeys));
+        };
+
+    monkeys["root"].op = '-';
+    solve("root", "humn", 0);
+    return answer;
+  }
 };
 
 TEST(Day21, Part1) {
   EXPECT_EQ(Day21().Part1(aoc::Input(2022, 21)), 84244467642604);
 }
 
-TEST(Day21, Part2) { EXPECT_EQ(Day21().Part2(aoc::Input(2022, 21)), 21); }
+TEST(Day21, Part2) {
+  EXPECT_EQ(Day21().Part2(aoc::Input(2022, 21)), 3759569926192);
+}
 
 }  // namespace aoc2022

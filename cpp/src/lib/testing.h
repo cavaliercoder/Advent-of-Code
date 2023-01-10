@@ -96,6 +96,10 @@ class BaseTest {
   bool operator<(const BaseTest& rhs) const;
 
   friend std::ostream& operator<<(std::ostream& os, BaseTest& t);
+
+ protected:
+  // Sets the handler for common signals.
+  void signal(void (*handler)(int));
 };
 
 // Base class of all user-defined test constructors.
@@ -150,14 +154,13 @@ struct TestRunner {
   }                                                                            \
                                                                                \
   void TEST_CLASS_NAME(suite_name, test_name)::run() {                         \
-    std::signal(SIGSEGV,                                                       \
-                TEST_CLASS_NAME(suite_name, test_name)::signal_handler);       \
+    signal(TEST_CLASS_NAME(suite_name, test_name)::signal_handler);            \
     try {                                                                      \
       WRAP_(test_body());                                                      \
     } catch (aoc::TestError e) {                                               \
       errv_.push_back(e);                                                      \
     }                                                                          \
-    std::signal(SIGSEGV, SIG_DFL);                                             \
+    signal(SIG_DFL);                                                           \
   }                                                                            \
                                                                                \
   void TEST_CLASS_NAME(suite_name, test_name)::test_body()

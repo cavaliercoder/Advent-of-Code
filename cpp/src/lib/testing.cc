@@ -44,6 +44,11 @@ std::ostream& operator<<(std::ostream& os, BaseTest& t) {
   return os << t.str();
 }
 
+void BaseTest::signal(void (*handler)(int)) {
+  static int signals[] = {SIGABRT, SIGFPE, SIGSEGV};
+  for (int i = 0; i < 3; ++i) std::signal(signals[i], handler);
+}
+
 /*
  * Test runner implementation.
  */
