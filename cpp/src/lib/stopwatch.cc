@@ -11,15 +11,16 @@ static uint64_t now() {
       .count();
 }
 
-void Stopwatch::start() {
+Stopwatch& Stopwatch::start() {
   stop_ = 0;
   start_ = now();
+  return *this;
 }
 
-uint64_t Stopwatch::stop() {
-  if (stop_ != 0) return duration();  // Already stopped
+Stopwatch& Stopwatch::stop() {
+  if (stop_ != 0) return *this;  // Already stopped
   stop_ = now();
-  return duration();
+  return *this;
 }
 
 uint64_t Stopwatch::duration() const {
@@ -27,6 +28,8 @@ uint64_t Stopwatch::duration() const {
   if (!stop_) return now() - start_;
   return stop_ - start_;
 }
+
+uint64_t Stopwatch::operator*() const { return duration(); }
 
 std::string Stopwatch::str() const {
   std::stringstream ss;
@@ -43,7 +46,7 @@ std::string Stopwatch::str() const {
   return ss.str();
 }
 
-std::ostream& operator<<(std::ostream& os, Stopwatch& sw) {
+std::ostream& operator<<(std::ostream& os, const Stopwatch& sw) {
   return os << sw.str();
 }
 

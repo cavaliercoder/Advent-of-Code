@@ -13,13 +13,13 @@ class Stopwatch {
 
  public:
   // Start or restart the stopwatch.
-  void start();
+  Stopwatch& start();
 
   // Stops the stopwatch and returns the time elapsed in nanoseconds.
   //
   // Returns the same result on subsequent calls until the stopwatch is
   // restarted.
-  uint64_t stop();
+  Stopwatch& stop();
 
   // Returns the time elapsed between the last start and stop.
   //
@@ -27,10 +27,17 @@ class Stopwatch {
   // started.
   uint64_t duration() const;
 
+  // Dereference operator returns the time elapsed between the last start and
+  // stop.
+  //
+  // If the stopwatch is still running, returns the time elapsed since it
+  // started.
+  uint64_t operator*() const;
+
   // Returns a string representation of the time elapsed.
   std::string str() const;
 
-  friend std::ostream& operator<<(std::ostream& os, Stopwatch& sw);
+  friend std::ostream& operator<<(std::ostream& os, const Stopwatch& sw);
 };
 
 }  // namespace aoc
