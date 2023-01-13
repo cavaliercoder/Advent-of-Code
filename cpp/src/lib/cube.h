@@ -246,9 +246,9 @@ class Cube {
   template <typename T>
   constexpr Cube(const Point<3, T> xyz) {
     auto p = ((xyz % 4) + 4) % 4;
-    for (int x = 0; x < p.x(); ++x) down();
-    for (int y = 0; y < p.y(); ++y) right();
-    for (int z = 0; z < p.z(); ++z) ccw();
+    for (int x = 0; x < p.x(); ++x) state_ = DOWN[state_];
+    for (int y = 0; y < p.y(); ++y) state_ = RIGHT[state_];
+    for (int z = 0; z < p.z(); ++z) state_ = CCW[state_];
   }
 
   // Returns a vector containing every possible cube state.
@@ -256,48 +256,6 @@ class Cube {
     std::vector<Cube> a;
     for (int i = 0; i < MaxStates; ++i) a.push_back(Cube(i));
     return a;
-  }
-
-  // Resets the cube to its initial orientation.
-  constexpr Cube& reset() {
-    state_ = 0;
-    return *this;
-  }
-
-  // Pushes the front face of the cube to the left by 90°.
-  constexpr Cube& left() {
-    state_ = LEFT[state_];
-    return *this;
-  }
-
-  // Pushes the front face of the cube to the right by 90°.
-  constexpr Cube& right() {
-    state_ = RIGHT[state_];
-    return *this;
-  }
-
-  // Pushes the front face of the cube up 90°.
-  constexpr Cube& up() {
-    state_ = UP[state_];
-    return *this;
-  }
-
-  // Pushes the front face of the cube down 90°.
-  constexpr Cube& down() {
-    state_ = DOWN[state_];
-    return *this;
-  }
-
-  // Rotates the front face 90° clockwise.
-  constexpr Cube& cw() {
-    state_ = CW[state_];
-    return *this;
-  }
-
-  // Rotates the front face 90° counterclockwise.
-  constexpr Cube& ccw() {
-    state_ = CCW[state_];
-    return *this;
   }
 
   // Returns the internal state value of the cube so it can be reconstructed.
@@ -322,6 +280,24 @@ class Cube {
   constexpr Point<3, int> xyz() const {
     return {X[state_], Y[state_], Z[state_]};
   }
+
+  // Pushes the front face of the cube to the left by 90°.
+  constexpr Cube left() const { return Cube(LEFT[state_]); }
+
+  // Pushes the front face of the cube to the right by 90°.
+  constexpr Cube right() const { return Cube(RIGHT[state_]); }
+
+  // Pushes the front face of the cube up 90°.
+  constexpr Cube up() const { return Cube(UP[state_]); }
+
+  // Pushes the front face of the cube down 90°.
+  constexpr Cube down() const { return Cube(DOWN[state_]); }
+
+  // Rotates the front face 90° clockwise.
+  constexpr Cube cw() const { return Cube(CW[state_]); }
+
+  // Rotates the front face 90° counterclockwise.
+  constexpr Cube ccw() const { return Cube(CCW[state_]); }
 
   friend constexpr bool operator==(const Cube& lhs, const Cube& rhs) {
     return lhs.state_ == rhs.state_;

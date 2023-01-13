@@ -12,9 +12,6 @@ TEST(AoC, Cube) {
   EXPECT_NE(Cube(), Cube(1));
   EXPECT_EQ(Cube().down(), Cube().up().up().up());
 
-  // Reset
-  EXPECT_EQ(c.left().up().right().down().ccw().reset(), Cube());
-
   // Spin
 
   auto expect_face = [&](Cube& c, Cube::Face face) -> void {
@@ -39,31 +36,31 @@ TEST(AoC, Cube) {
 
   // Spin up
   expect_face(c, Cube::Face::Front);
-  expect_face(c.up(), Cube::Face::Bottom);
-  expect_face(c.up(), Cube::Face::Back);
-  expect_face(c.up(), Cube::Face::Top);
-  expect_face(c.up(), Cube::Face::Front);
+  expect_face(c = c.up(), Cube::Face::Bottom);
+  expect_face(c = c.up(), Cube::Face::Back);
+  expect_face(c = c.up(), Cube::Face::Top);
+  expect_face(c = c.up(), Cube::Face::Front);
 
   // Spin down
   expect_face(c, Cube::Face::Front);
-  expect_face(c.down(), Cube::Face::Top);
-  expect_face(c.down(), Cube::Face::Back);
-  expect_face(c.down(), Cube::Face::Bottom);
-  expect_face(c.down(), Cube::Face::Front);
+  expect_face(c = c.down(), Cube::Face::Top);
+  expect_face(c = c.down(), Cube::Face::Back);
+  expect_face(c = c.down(), Cube::Face::Bottom);
+  expect_face(c = c.down(), Cube::Face::Front);
 
   // Spin left
   expect_face(c, Cube::Face::Front);
-  expect_face(c.left(), Cube::Face::Right);
-  expect_face(c.left(), Cube::Face::Back);
-  expect_face(c.left(), Cube::Face::Left);
-  expect_face(c.left(), Cube::Face::Front);
+  expect_face(c = c.left(), Cube::Face::Right);
+  expect_face(c = c.left(), Cube::Face::Back);
+  expect_face(c = c.left(), Cube::Face::Left);
+  expect_face(c = c.left(), Cube::Face::Front);
 
   // Spin right
   expect_face(c, Cube::Face::Front);
-  expect_face(c.right(), Cube::Face::Left);
-  expect_face(c.right(), Cube::Face::Back);
-  expect_face(c.right(), Cube::Face::Right);
-  expect_face(c.right(), Cube::Face::Front);
+  expect_face(c = c.right(), Cube::Face::Left);
+  expect_face(c = c.right(), Cube::Face::Back);
+  expect_face(c = c.right(), Cube::Face::Right);
+  expect_face(c = c.right(), Cube::Face::Front);
 
   // XYZ rotation.
   for (int i = 0; i < 24; ++i) {

@@ -67,11 +67,11 @@ struct Day22 {
       input_orientation[p] = c;
       for (int i = 0; i < 4; ++i) {
         // All four rotations returns the same face.
-        face_at[c.ccw()] = p;
+        face_at[c = c.ccw()] = p;
       }
-      stack.push({{p.x() - size, p.y()}, Cube(c).right()});
-      stack.push({{p.x() + size, p.y()}, Cube(c).left()});
-      stack.push({{p.x(), p.y() + size}, Cube(c).up()});
+      stack.push({{p.x() - size, p.y()}, c.right()});
+      stack.push({{p.x() + size, p.y()}, c.left()});
+      stack.push({{p.x(), p.y() + size}, c.up()});
     }
   }
 
@@ -122,13 +122,13 @@ struct Day22 {
 
         // Rotate the cube and find the next face
         if (s.o == up) {
-          cube.down();
+          cube = cube.down();
         } else if (s.o == down) {
-          cube.up();
+          cube = cube.up();
         } else if (s.o == left) {
-          cube.right();
+          cube = cube.right();
         } else if (s.o == right) {
-          cube.left();
+          cube = cube.left();
         } else {
           throw "bad orientation";
         }
@@ -137,7 +137,7 @@ struct Day22 {
 
         // Rotate the face to match the input grid.
         while (cube != input_orientation.at(face)) {
-          cube.ccw();
+          cube = cube.ccw();
           next.o = next.o.cw();
           entry = entry.icw(size);
         }
