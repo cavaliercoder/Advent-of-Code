@@ -85,11 +85,9 @@ class Day19 {
 
   int crack_geodes(Blueprint& bp, const int ttl) {
     int best = 0;
-    std::stack<State> Q = {};
-    Q.push({{}, {1}, ttl});
-    while (!Q.empty()) {
-      auto state = Q.top();
-      Q.pop();
+    auto Q = aoc::Stack<State>({{}, {1}, ttl});
+    while (Q) {
+      auto state = Q.pop();
       best = std::max(best, state.balance[Geodes]);
       if (!state.ttl) continue;
 

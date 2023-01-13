@@ -56,12 +56,11 @@ struct Day22 {
     }
 
     // Determine the orientation of each cube face in the input
-    std::stack<std::pair<Point, Cube>> stack;
+    auto stack =
+        aoc::Stack<std::pair<Point, Cube>>({grid.find(Path).point(), Cube()});
     std::unordered_set<Point> seen;
-    stack.push({grid.find(Path).point(), Cube()});
-    while (!stack.empty()) {
-      auto [p, c] = stack.top();
-      stack.pop();
+    while (stack) {
+      auto [p, c] = stack.pop();
       if (seen.count(p) || !grid.contains(p) || grid[p] == Air) continue;
       seen.insert(p);
       input_orientation[p] = c;

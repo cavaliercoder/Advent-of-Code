@@ -66,19 +66,15 @@ class Day16 {
       int ttl = 0;
       int flow = 0;
     };
-    int seen = 1;
-    std::stack<State> stack;
-    stack.push(State{AA, 0, ttl, 0});
+    auto stack = aoc::Stack<State>(State{AA, 0, ttl, 0});
     std::unordered_map<Mask, int> best_flows;
-    while (!stack.empty()) {
-      auto state = stack.top();
-      stack.pop();
+    while (stack) {
+      auto state = stack.pop();
       best_flows[state.visited] =
           std::max(best_flows[state.visited], state.flow);
       for (auto& [next, _] : flows) {
         auto next_ttl = state.ttl - weights[state.current][next] - 1;
         if (next_ttl <= 0 || state.visited & next) continue;
-        ++seen;
         stack.push(State{next, state.visited | next, next_ttl,
                          state.flow + next_ttl * flows[next]});
       }

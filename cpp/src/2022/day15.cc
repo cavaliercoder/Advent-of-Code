@@ -102,11 +102,9 @@ class Day15 {
   uint64_t Part2(aoc::Input in, const int64_t max_v = 4000000) {
     auto m = parse(in);
     int64_t score = -1;
-    auto stack = std::stack<Rect>();
-    stack.push(Rect(Point(), Point(max_v + 1, max_v + 1)));
-    while (!stack.empty()) {
-      auto r = stack.top();
-      stack.pop();
+    auto stack = aoc::Stack<Rect>(Rect(Point(), Point(max_v + 1, max_v + 1)));
+    while (stack) {
+      auto r = stack.pop();
       bool skip = false;
       for (auto [_, obj] : m) {
         if (obj->in_range(r)) {
