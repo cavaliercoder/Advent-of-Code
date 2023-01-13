@@ -59,7 +59,7 @@ TEST(AoC, Point) {
 
   // Up, down, left, right.
   p = {1, 1};
-  auto [u, d, l, r] = p.udlr();
+  auto [l, r, d, u] = p.orth();
   EXPECT_EQ(u, Point(1, 2));
   EXPECT_EQ(d, Point(1, 0));
   EXPECT_EQ(l, Point(0, 1));

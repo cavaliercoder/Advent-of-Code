@@ -40,7 +40,7 @@ class Day18 {
       if (p.x() > max.x() || p.y() > max.y() || p.z() > max.z()) continue;
       if (m[p] != Air) continue;
       m[p] = Water;
-      for (auto next : p.udlrfb()) Q.push(next);
+      for (auto next : p.orth()) Q.push(next);
     }
   }
 
@@ -50,7 +50,7 @@ class Day18 {
     auto m = parse(in);
     int count = 0;
     for (auto [p, _] : m)
-      for (auto q : p.udlrfb())
+      for (auto q : p.orth())
         if (!m.contains(q)) ++count;
     return count;
   }
@@ -63,7 +63,7 @@ class Day18 {
     flood(m, Point());
     for (auto [p, v] : m) {
       if (v != Lava) continue;
-      for (auto q : p.udlrfb())
+      for (auto q : p.orth())
         if (m.at(q) == Water) ++count;
     }
     return count;

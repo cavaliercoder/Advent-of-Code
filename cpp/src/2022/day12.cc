@@ -10,7 +10,7 @@ class Day12 {
  public:
   int Part1(aoc::Input in) {
     auto g = in.grid();
-    auto udlr = Point().udlr();
+    auto udlr = Point().orth();
 
     Point S, E;
     for (auto it = g.begin(); it < g.end(); ++it) {
@@ -51,7 +51,7 @@ class Day12 {
 
   int Part2(aoc::Input in) {
     auto g = in.grid();
-    auto udlr = Point().udlr();
+    auto udlr = Point().orth();
 
     Point E;
     for (auto it = g.begin(); it < g.end(); ++it) {

@@ -217,7 +217,7 @@ class Stack {
   operator bool() const { return !data_.empty(); }
 };
 
-// UniqueStack ignores items it has already seen.
+// UniqueStack is a Stack that ignores items it has already seen.
 //
 // Useful for depth-first search, etc.
 template <typename T>

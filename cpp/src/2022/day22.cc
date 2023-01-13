@@ -2,7 +2,7 @@
 
 namespace aoc2022 {
 
-struct Day22 {
+class Day22 {
   using Cube = aoc::Cube;
   using Grid = aoc::Grid<char>;
   using Point = aoc::Point<2, int>;
@@ -28,7 +28,7 @@ struct Day22 {
   static constexpr Point up = Point().down();
   static constexpr Point down = Point().up();
 
-  Day22(aoc::Input in, const int size = 50) : size(size) {
+  void parse(aoc::Input& in) {
     // Parse grid
     grid = Grid(size * 4, size * 4, Air);
     Point p;
@@ -158,6 +158,9 @@ struct Day22 {
     if (o == up) return n + 3;
     throw "bad bearing";
   }
+
+ public:
+  Day22(aoc::Input in, int size = 50) : size(size) { parse(in); }
 
   int Part1() const {
     Step s = {grid.find(Path).point(), up, 0};

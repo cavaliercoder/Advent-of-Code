@@ -7,7 +7,7 @@
 namespace aoc {
 
 // Point represents an N-dimensional coordinate with components of type T.
-template <int N = 2, typename T = int>
+template <size_t N = 2, typename T = int>
 struct Point {
   T data[N] = {};
 
@@ -37,7 +37,7 @@ struct Point {
   constexpr T z() const { return data[2]; }
 
   // Returns the number of dimensions in the point.
-  int constexpr size() const { return N; }
+  constexpr size_t size() const { return N; }
 
   // Returns true if all components are zero.
   bool constexpr empty() const {
@@ -163,15 +163,20 @@ struct Point {
   POINT_MOVE(forward, 2, +)
   POINT_MOVE(backward, 2, -)
 
-  // Returns the adjacent points immediately up, down, left and right.
-  constexpr std::array<Point, 4> udlr() const {
-    return {up(), down(), left(), right()};
-  }
-
-  // Returns the adjacent points immediately up, down, left, right, forward and
-  // back.
-  constexpr std::array<Point, 6> udlrfb() const {
-    return {up(), down(), left(), right(), forward(), backward()};
+  // Returns all immediate orthogonal neighboring points.
+  //
+  // The returned order is deterministic and is always -1 then +1 for each
+  // subsequent dimension.
+  constexpr std::array<Point, N * 2> orth() const {
+    std::array<Point, N * 2> a;
+    for (int i = 0; i < N; ++i) {
+      auto p = Point(*this);
+      p.data[i] = data[i] - 1;
+      a[i * 2] = p;
+      p.data[i] = data[i] + 1;
+      a[(i * 2) + 1] = p;
+    }
+    return a;
   }
 
   // Negates each component.
