@@ -28,6 +28,7 @@ char* TestError::what() { return msg_.data(); }
 
 const std::vector<TestError>& TestCase::errv() const { return errv_; }
 const Stopwatch& TestCase::stopwatch() const { return sw_; }
+const std::string TestCase::cout() const { return cout_.str(); }
 TestCase::operator bool() const { return errv_.empty(); }
 
 bool TestCase::operator<(const TestCase& rhs) const {
@@ -80,6 +81,28 @@ std::vector<TestCase*> TestRunner::make() const {
   return tests;
 }
 
+static inline std::ostream& wrap_lines(std::ostream& os, const std::string& s,
+                                       const std::string& prefix,
+                                       const std::string& suffix,
+                                       const bool skip_prefix = false) {
+  if (s.empty()) return os << '\n';
+  if (!skip_prefix) os << prefix;
+  bool join = false;
+  for (auto it = s.begin(); it < s.end(); ++it) {
+    if (join) {
+      os << suffix << '\n' << prefix;
+      join = false;
+    }
+    if (*it == '\n') {
+      join = true;
+      continue;
+    };
+    os.put(*it);
+  }
+  os << suffix << "\n";
+  return os;
+}
+
 int TestRunner::run(std::string filter) const {
   auto tests = make();
   int run_count = 0;
@@ -103,19 +126,20 @@ int TestRunner::run(std::string filter) const {
     if (*test) {
       std::cout << "[\u001b[32mPASS\u001b[0m]\n";
       ++pass_count;
-    } else {
-      ++fail_count;
-      std::cout << "[\u001b[31mFAIL\u001b[0m]\n";
-      for (auto& err : test->errv()) {
-        std::cout << "  ";
-        if (!err.file().empty()) {
-          std::cout << err.file();
-          if (err.line()) std::cout << ":" << err.line();
-          std::cout << " ";
-        }
-        std::cout << err.msg() << "\n";
+      continue;
+    }
+    ++fail_count;
+    std::cout << "[\u001b[31mFAIL\u001b[0m]\n";
+    auto cout = test->cout();
+    wrap_lines(std::cout, test->cout(), "  \u001b[90m", "\u001b[0m");
+    for (auto& err : test->errv()) {
+      std::cout << "  ";
+      if (!err.file().empty()) {
+        std::cout << err.file();
+        if (err.line() > 0) std::cout << ":" << err.line();
+        std::cout << " ";
       }
-      std::cout << std::endl;
+      wrap_lines(std::cout, err.msg(), "  ", "", true) << "\n";
     }
   }
   std::cout << "\nPassed " << pass_count << "/" << run_count;

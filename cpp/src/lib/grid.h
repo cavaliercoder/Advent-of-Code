@@ -33,6 +33,8 @@ class Grid {
   }
 
  public:
+  Grid() = default;
+
   Grid(const int width, const int height, std::vector<T> data)
       : width_(width), height_(height), data_(data) {
     assert(data_.size() == width * height);
@@ -64,6 +66,9 @@ class Grid {
     ss << *this;
     return ss.str();
   }
+
+  inline T at(const int i) const { return data_[i]; }
+  inline T at(const Point p) const { return data_[ptoi(p)]; }
 
   inline T operator[](const int i) const { return data_[i]; }
   inline T& operator[](const int i) { return data_[i]; }
@@ -174,14 +179,35 @@ class Grid {
   // Returns a random-access iterator to the first member of the grid.
   //
   // The first member is at index 0 and point {0, 0}.
-  Iterator begin() const { return Iterator(this); }
+  inline Iterator begin() const { return Iterator(this); }
 
   // Returns a random-access iterator to the first position beyond the end of
   // the grid.
   //
   // The end position is at index grid.size() and point {grid.width(),
   // grid.height()}.
-  Iterator end() const { return Iterator(this, size()); }
+  inline Iterator end() const { return Iterator(this, size()); }
+
+  // Returns an iterator to the first instance of the given value.
+  //
+  // If the value is not found, the return iterator will equal end().
+  inline Iterator find(const T value, int pos = -1, int n = -1) const {
+    pos = pos < 0 ? 0 : pos;
+    int limit = n < 0 ? size() : pos + n;
+    for (int i = pos; i < limit; ++i)
+      if (data_[i] == value) return Iterator(this, i);
+    return end();
+  }
+
+  // Returns an iterator to the first instance of the given value searching from
+  // p in the given direction.
+  //
+  // If the value is not found, the return iterator will equal end().
+  inline Iterator find(const T value, Point p, const Point direction) const {
+    while (contains(p) && at(p) != value) p += direction;
+    if (!contains(p)) return end();
+    return Iterator(this, p);
+  }
 
   inline T operator[](const Iterator& it) const { return data_[it.index()]; }
   inline T& operator[](const Iterator& it) { return data_[it.index()]; }

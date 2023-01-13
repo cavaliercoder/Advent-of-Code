@@ -96,21 +96,26 @@ class Day21 {
   }
 
   int64_t Part2(aoc::Input in) {
+    int64_t answer;
     auto monkeys = parse(in);
     monkeys["root"].eval(monkeys);
 
-    int64_t answer;
+    // DFS for the target expression, tracking the required solution to each
+    // expression in the stack.  When we get to the target, we know exactly what
+    // value it needs to represent.
     std::function<void(const std::string&, const std ::string&, const int64_t)>
-        solve = [&](const std::string& id, const std::string& needle,
+        solve = [&](const std::string& start, const std::string& target,
                     const int64_t solution) {
-          if (id == needle) answer = solution;
+          if (start == target) answer = solution;
           if (answer) return;
-          auto& m = monkeys[id];
+          auto& m = monkeys[start];
           if (!m.op) return;
-          solve(m.lhs, needle, m.solve_left(solution, monkeys));
-          solve(m.rhs, needle, m.solve_right(solution, monkeys));
+          solve(m.lhs, target, m.solve_left(solution, monkeys));
+          solve(m.rhs, target, m.solve_right(solution, monkeys));
         };
 
+    // Instead of implementing equality, lets express it in terms of
+    // subtraction: a - b == 0.
     monkeys["root"].op = '-';
     solve("root", "humn", 0);
     return answer;

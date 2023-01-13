@@ -56,9 +56,19 @@ TEST(AoC, Grid) {
   }
   EXPECT_EQ(i, 12);
 
+  // Test find
+  auto it = g.find('J');
+  EXPECT_LT(it, g.end());
+  EXPECT_NE(it, g.end());
+  EXPECT_EQ(*it, 'J');
+  EXPECT_EQ(it.index(), 9);
+  EXPECT_EQ(it.point(), Point(1, 2));
+  it = g.find('M');
+  EXPECT_EQ(it, g.end());
+
   // Test forward iteration
   i = 0;
-  auto it = g.begin();
+  it = g.begin();
   for (int y = 0; y < g.height(); ++y) {
     for (int x = 0; x < g.width(); ++x) {
       EXPECT_NE(it, g.end());

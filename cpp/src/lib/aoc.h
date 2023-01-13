@@ -2,6 +2,7 @@
 #define AOC_H
 
 #include "checksum.h"
+#include "cube.h"
 #include "graph.h"
 #include "grid.h"
 #include "heap.h"

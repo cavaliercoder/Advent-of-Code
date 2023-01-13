@@ -7,29 +7,88 @@ namespace aoc {
 TEST(AoC, Point) {
   using Point = aoc::Point<2, int>;
 
-  auto p = Point(1, 1);
+  // Default constructor.
+  Point p;
+  EXPECT_EQ(p, Point());
+  EXPECT_EQ(p.size(), 2);
+  EXPECT_EQ(p.x(), 0);
+  EXPECT_EQ(p.y(), 0);
+
+  // Assignement
+  p = Point(3, 4);
+  EXPECT_EQ(p, Point(3, 4));
+
+  // Components
+  EXPECT_EQ(Point(5, 6).x(), 5);
+  EXPECT_EQ(Point(5, 6).y(), 6);
+
+  // Accessors.
+  p = Point(5, 6);
+  EXPECT_EQ(p[0], 5);
+  EXPECT_EQ(p[1], 6);
+  p[0] = -1;
+  p[1] = -2;
+  EXPECT_EQ(p, Point(-1, -2));
+
+  // Comparison.
+  EXPECT_EQ(Point(1, 2), Point(1, 2));
+  EXPECT_NE(Point(1, 2), Point(3, 4));
+  EXPECT_NE(Point(50, 0), Point(50, -22));
+
+  // Addition.
+  p = Point(1, 1);
   EXPECT_EQ(p + Point(2, 2), Point(3, 3));
   EXPECT_EQ(p, Point(1, 1));
   EXPECT_EQ(p += Point(3, 4), Point(4, 5));
   EXPECT_EQ(p, Point(4, 5));
+  EXPECT_EQ(p++, Point(4, 5));
+  EXPECT_EQ(++p, Point(6, 7));
 
-  auto [u, d, l, r] = Point(1, 1).udlr();
+  // Rotation
+  p = {3, 6};
+  EXPECT_EQ(p = p.cw(), Point(6, -3));
+  EXPECT_EQ(p = p.cw(), Point(-3, -6));
+  EXPECT_EQ(p = p.cw(), Point(-6, 3));
+  EXPECT_EQ(p = p.cw(), Point(3, 6));
+
+  p = {2, 4};
+  EXPECT_EQ(p = p.ccw(), Point(-4, 2));
+  EXPECT_EQ(p = p.ccw(), Point(-2, -4));
+  EXPECT_EQ(p = p.ccw(), Point(4, -2));
+  EXPECT_EQ(p = p.ccw(), Point(2, 4));
+
+  // Up, down, left, right.
+  p = {1, 1};
+  auto [u, d, l, r] = p.udlr();
   EXPECT_EQ(u, Point(1, 2));
   EXPECT_EQ(d, Point(1, 0));
   EXPECT_EQ(l, Point(0, 1));
   EXPECT_EQ(r, Point(2, 1));
+  EXPECT_EQ(p, p.up().right().down().left());
 
+  // Negation.
   EXPECT_EQ(-Point(-1, 2), Point(1, -2));
 
+  // Absolute value.
   EXPECT_EQ(Point(0, 0).abs(), Point());
   EXPECT_EQ(Point(1, 2).abs(), Point(1, 2));
   EXPECT_EQ(Point(-1, 2).abs(), Point(1, 2));
   EXPECT_EQ(Point(1, -2).abs(), Point(1, 2));
   EXPECT_EQ(Point(-1, -2).abs(), Point(1, 2));
 
+  // Min/max.
   EXPECT_EQ(Point(1, 2).min(Point(-1, 3)), Point(-1, 2));
   EXPECT_EQ(Point(1, 2).max(Point(-1, 3)), Point(1, 3));
 
+  // Orientation.
+  EXPECT_EQ(Point().orientation(), Point());
+  EXPECT_EQ(Point(10, 10).orientation(), Point(1, 1));
+  EXPECT_EQ(Point(123, -456).orientation(), Point(1, -1));
+  EXPECT_EQ(Point(-123, 456).orientation(), Point(-1, 1));
+  EXPECT_EQ(Point(-123, 456).orientation(),
+            Point(-123, 456).orientation().orientation());
+
+  // Nudging.
   // Dimensions: {inc, inc*2, dec, dec*2, static}.
   using Point5D = aoc::Point<5, int>;
   Point5D p_start = {1, 2, 3, 4, 5};
@@ -39,6 +98,11 @@ TEST(AoC, Point) {
   EXPECT_EQ(p_start = p_start.nudge(p_end), p_next);
   EXPECT_EQ(p_start = p_start.nudge(p_end), p_end);
   EXPECT_EQ(p_start = p_start.nudge(p_end), p_end);
+
+  // constexpr
+  static constexpr auto c =
+      (Point(-3, 40).orientation() * 4).abs().max({0, 6}).nudge({}).down().y();
+  EXPECT_EQ(c, 4);
 }
 
 }  // namespace aoc

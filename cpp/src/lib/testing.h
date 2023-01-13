@@ -47,15 +47,17 @@ class TestError : std::exception {
     try {                                                                     \
       expr;                                                                   \
     } catch (aoc::TestError e) {                                              \
-      throw;                                                                  \
+      errv_.push_back(e);                                                     \
     } catch (std::exception e) {                                              \
-      throw aoc::TestError("Uncaught exception: " + std::string(e.what()),    \
-                           __FILE__, __LINE__);                               \
+      errv_.push_back(                                                        \
+          aoc::TestError("Uncaught exception: " + std::string(e.what()),      \
+                         __FILE__, __LINE__));                                \
     } catch (char const* e) {                                                 \
-      throw aoc::TestError("Uncaught exception: " + std::string(e), __FILE__, \
-                           __LINE__);                                         \
+      errv_.push_back(aoc::TestError("Uncaught exception: " + std::string(e), \
+                                     __FILE__, __LINE__));                    \
     } catch (...) {                                                           \
-      throw aoc::TestError("Uncaught exception.", __FILE__, __LINE__);        \
+      errv_.push_back(                                                        \
+          aoc::TestError("Uncaught exception.", __FILE__, __LINE__));         \
     }                                                                         \
   }
 
@@ -64,6 +66,8 @@ class TestCase {
  protected:
   Stopwatch sw_ = {};
   std::vector<TestError> errv_;
+
+  std::stringstream cout_;
 
  public:
   virtual ~TestCase() = default;
@@ -91,6 +95,8 @@ class TestCase {
 
   // Returns a reference to the stopwatch result of the last run.
   const Stopwatch& stopwatch() const;
+
+  const std::string cout() const;
 
   // Returns the tests fully qualified name.
   std::string str() const;
@@ -154,27 +160,28 @@ class TestRunner {
     int line() const override { return __LINE__; }                           \
                                                                              \
     static void signal_handler(const int sig) {                              \
-      std::stringstream ss;                                                  \
-      ss << "Caught signal: " << sig;                                        \
-      throw aoc::TestError(ss.str(), __FILE__, __LINE__);                    \
+      auto msg = std::string("Caught signal: ") + strsignal(sig);            \
+      throw aoc::TestError(msg, __FILE__, __LINE__);                         \
     }                                                                        \
                                                                              \
+    void test_body();                                                        \
+                                                                             \
     void run() override {                                                    \
+      auto cout = std::cout.rdbuf();                                         \
+      auto cerr = std::cerr.rdbuf();                                         \
+      std::cout.rdbuf(cout_.rdbuf());                                        \
+      std::cerr.rdbuf(cout_.rdbuf());                                        \
       static int signals[] = {SIGABRT, SIGFPE, SIGSEGV};                     \
       for (int i = 0; i < 3; ++i)                                            \
         std::signal(signals[i],                                              \
                     TEST_CLASS_NAME(suite_name, test_name)::signal_handler); \
       sw_.start();                                                           \
-      try {                                                                  \
-        WRAP_(test_body());                                                  \
-      } catch (aoc::TestError e) {                                           \
-        errv_.push_back(e);                                                  \
-      }                                                                      \
+      WRAP_(test_body());                                                    \
       sw_.stop();                                                            \
       for (int i = 0; i < 3; ++i) std::signal(signals[i], SIG_DFL);          \
+      std::cout.rdbuf(cout);                                                 \
+      std::cerr.rdbuf(cerr);                                                 \
     }                                                                        \
-                                                                             \
-    void test_body();                                                        \
   };                                                                         \
                                                                              \
   const int TEST_CLASS_NAME(suite_name, test_name)::id_ =                    \
