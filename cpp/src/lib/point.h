@@ -7,16 +7,16 @@
 namespace aoc {
 
 // Point represents an N-dimensional coordinate with components of type T.
-template <size_t N = 2, typename T = int>
+template <size_t Size = 2, typename T = int>
 struct Point {
-  T data[N] = {};
+  T data[Size] = {};
 
   // Returns a point at {0, ...}.
   constexpr Point() = default;
 
   // Returns a point with the given components.
   constexpr Point(std::initializer_list<T> init) {
-    assert(init.size() == N);
+    assert(init.size() == Size);
     int i = 0;
     for (auto n : init) data[i++] = n;
   }
@@ -37,11 +37,11 @@ struct Point {
   constexpr T z() const { return data[2]; }
 
   // Returns the number of dimensions in the point.
-  constexpr size_t size() const { return N; }
+  constexpr size_t size() const { return Size; }
 
   // Returns true if all components are zero.
   bool constexpr empty() const {
-    for (int i = 0; i < N; ++i)
+    for (int i = 0; i < Size; ++i)
       if (data[i]) return false;
     return true;
   }
@@ -49,14 +49,14 @@ struct Point {
   // Returns a new point where each component is the result of f(n).
   Point map(const std::function<T(T)>& f) const {
     Point q = {};
-    for (int i = 0; i < N; ++i) q.data[i] = f(data[i]);
+    for (int i = 0; i < Size; ++i) q.data[i] = f(data[i]);
     return q;
   }
 
   // Returns a new point where each component is the result of f(n, m).
   Point map(const Point p, const std::function<T(T, T)>& f) const {
     Point q = {};
-    for (int i = 0; i < N; ++i) q.data[i] = f(data[i], p.data[i]);
+    for (int i = 0; i < Size; ++i) q.data[i] = f(data[i], p.data[i]);
     return q;
   }
 
@@ -64,7 +64,7 @@ struct Point {
   // old value.
   constexpr Point abs() const {
     Point q = {};
-    for (int i = 0; i < N; ++i) {
+    for (int i = 0; i < Size; ++i) {
       // std::abs is not a constexpr until C++23
       q.data[i] = data[i] < 0 ? -data[i] : data[i];
     }
@@ -75,7 +75,7 @@ struct Point {
   // is closest. For example, the orientation of {-10, 0 53} is {-1, 0, 1}.
   constexpr Point orientation() const {
     Point q = {};
-    for (int i = 0; i < N; ++i)
+    for (int i = 0; i < Size; ++i)
       q.data[i] = (data[i] == 0) ? 0 : (data[i] > 0) ? 1 : -1;
     return q;
   }
@@ -88,7 +88,7 @@ struct Point {
   // in this point and p.
   constexpr Point min(const Point p) const {
     Point q = {};
-    for (int i = 0; i < N; ++i) q.data[i] = std::min(data[i], p.data[i]);
+    for (int i = 0; i < Size; ++i) q.data[i] = std::min(data[i], p.data[i]);
     return q;
   }
 
@@ -96,14 +96,14 @@ struct Point {
   // component in this point and p.
   constexpr Point max(const Point p) const {
     Point q = {};
-    for (int i = 0; i < N; ++i) q.data[i] = std::max(data[i], p.data[i]);
+    for (int i = 0; i < Size; ++i) q.data[i] = std::max(data[i], p.data[i]);
     return q;
   }
 
   // Returns the Manhattan distance from this point to p.
   constexpr T manhattan(const Point p = {}) const {
     T n = 0;
-    for (int i = 0; i < N; ++i) n += std::abs(data[i] - p.data[i]);
+    for (int i = 0; i < Size; ++i) n += std::abs(data[i] - p.data[i]);
     return n;
   }
 
@@ -115,7 +115,7 @@ struct Point {
   // Calling p.nudge(p) always returns p.
   constexpr Point nudge(const Point p) const {
     Point q = {};
-    for (int i = 0; i < N; ++i) {
+    for (int i = 0; i < Size; ++i) {
       q.data[i] = (data[i] == p[i])  ? data[i]
                   : (data[i] < p[i]) ? std::min(data[i] + 1, p[i])
                                      : std::max(data[i] - 1, p[i]);
@@ -143,46 +143,82 @@ struct Point {
     return Point(w - y() - 1, x());
   }
 
-#define POINT_MOVE(name, index, op)       \
-  constexpr Point name(const T n) const { \
-    Point p = *this;                      \
-    p.data[index] op## = n;               \
-    return p;                             \
-  }                                       \
-                                          \
-  constexpr Point name() const {          \
-    Point p = *this;                      \
-    op##op p.data[index];                 \
-    return p;                             \
-  }
-
-  POINT_MOVE(left, 0, -)
-  POINT_MOVE(right, 0, +)
-  POINT_MOVE(up, 1, +)
-  POINT_MOVE(down, 1, -)
-  POINT_MOVE(forward, 2, +)
-  POINT_MOVE(backward, 2, -)
-
-  // Returns all immediate orthogonal neighboring points.
+  // Returns all immediate orthogonal neighboring points at distance n.
   //
   // The returned order is deterministic and is always -1 then +1 for each
   // subsequent dimension.
-  constexpr std::array<Point, N * 2> orth() const {
-    std::array<Point, N * 2> a;
-    for (int i = 0; i < N; ++i) {
+  constexpr std::array<Point, Size * 2> orth(const T n = 1) const {
+    std::array<Point, Size * 2> a;
+    for (int i = 0; i < Size; ++i) {
       auto p = Point(*this);
-      p.data[i] = data[i] - 1;
-      a[i * 2] = p;
-      p.data[i] = data[i] + 1;
-      a[(i * 2) + 1] = p;
+      p.data[i] = data[i] - n;
+      a[i * 2] = Point(p);
+      p.data[i] = data[i] + n;
+      a[(i * 2) + 1] = Point(p);
     }
     return a;
   }
 
+  // Returns all immediate adjacent neighboring points at distance n.
+  // Ordering is determinate but an implementation detail and should not be
+  // relied upon.
+  constexpr std::vector<Point> adj(const T n = 1) const {
+    Point p;
+    std::vector<Point> a;
+    for (int i = 0; i < Size; ++i) {
+      auto qn = a.size();
+      for (int q = 0; q < qn; ++q) {
+        p = Point(a[q]);
+        p.data[i] = data[i] - n;
+        a.push_back(p);
+        p.data[i] = data[i] + n;
+        a.push_back(p);
+      }
+      p = Point(*this);
+      p.data[i] = data[i] - n;
+      a.push_back(p);
+      p.data[i] = data[i] + n;
+      a.push_back(p);
+    }
+    return a;
+  }
+
+#define POINT_ORTH(name, index, offset)       \
+  constexpr Point name(const T n = 1) const { \
+    Point p = *this;                          \
+    p.data[index] += n * offset;              \
+    return p;                                 \
+  }
+
+  POINT_ORTH(left, 0, -1)
+  POINT_ORTH(right, 0, +1)
+  POINT_ORTH(up, 1, +1)
+  POINT_ORTH(down, 1, -1)
+  POINT_ORTH(forward, 2, +1)
+  POINT_ORTH(backward, 2, -1)
+
+  POINT_ORTH(N, 1, +1)
+  POINT_ORTH(S, 1, -1)
+  POINT_ORTH(E, 0, +1)
+  POINT_ORTH(W, 0, -1)
+
+#define POINT_DIAG(name, X, Y)                \
+  constexpr Point name(const T n = 1) const { \
+    Point p = *this;                          \
+    p.data[0] += X * n;                       \
+    p.data[1] += Y * n;                       \
+    return p;                                 \
+  }
+
+  POINT_DIAG(NW, -1, 1)
+  POINT_DIAG(NE, 1, 1)
+  POINT_DIAG(SW, -1, -1)
+  POINT_DIAG(SE, 1, -1)
+
   // Negates each component.
   constexpr Point operator-() const {
     Point q = {};
-    for (int i = 0; i < N; ++i) q.data[i] = -data[i];
+    for (int i = 0; i < Size; ++i) q.data[i] = -data[i];
     return q;
   }
 
@@ -192,25 +228,25 @@ struct Point {
   constexpr T& operator[](const int i) { return data[i]; }
   constexpr T operator[](const int i) const { return data[i]; }
 
-#define POINT_ARITHMATIC(op)                                             \
-  constexpr friend Point operator op(const Point lhs, const Point rhs) { \
-    Point q = {};                                                        \
-    for (int i = 0; i < N; ++i) q.data[i] = lhs.data[i] op rhs.data[i];  \
-    return q;                                                            \
-  }                                                                      \
-                                                                         \
-  constexpr friend Point operator op(const Point lhs, const T rhs) {     \
-    Point q = {};                                                        \
-    for (int i = 0; i < N; ++i) q.data[i] = lhs.data[i] op rhs;          \
-    return q;                                                            \
-  }                                                                      \
-                                                                         \
-  constexpr friend Point operator op##=(Point& lhs, const Point rhs) {   \
-    return lhs = lhs op rhs;                                             \
-  }                                                                      \
-                                                                         \
-  constexpr friend Point operator op##=(Point& lhs, const T rhs) {       \
-    return lhs = lhs op rhs;                                             \
+#define POINT_ARITHMATIC(op)                                               \
+  constexpr friend Point operator op(const Point lhs, const Point rhs) {   \
+    Point q = {};                                                          \
+    for (int i = 0; i < Size; ++i) q.data[i] = lhs.data[i] op rhs.data[i]; \
+    return q;                                                              \
+  }                                                                        \
+                                                                           \
+  constexpr friend Point operator op(const Point lhs, const T rhs) {       \
+    Point q = {};                                                          \
+    for (int i = 0; i < Size; ++i) q.data[i] = lhs.data[i] op rhs;         \
+    return q;                                                              \
+  }                                                                        \
+                                                                           \
+  constexpr friend Point operator op##=(Point& lhs, const Point rhs) {     \
+    return lhs = lhs op rhs;                                               \
+  }                                                                        \
+                                                                           \
+  constexpr friend Point operator op##=(Point& lhs, const T rhs) {         \
+    return lhs = lhs op rhs;                                               \
   }
 
   POINT_ARITHMATIC(+)
@@ -221,13 +257,13 @@ struct Point {
 
 #define POINT_INCREMENT(op)                           \
   constexpr friend Point operator op(Point& p) {      \
-    for (int i = 0; i < N; ++i) op p.data[i];         \
+    for (int i = 0; i < Size; ++i) op p.data[i];      \
     return p;                                         \
   }                                                   \
                                                       \
   constexpr friend Point operator op(Point& p, int) { \
     Point old = p;                                    \
-    for (int i = 0; i < N; ++i) op p.data[i];         \
+    for (int i = 0; i < Size; ++i) op p.data[i];      \
     return old;                                       \
   }
 
@@ -236,7 +272,7 @@ struct Point {
 
 #define POINT_CMP(op)                                                   \
   constexpr friend bool operator op(const Point lhs, const Point rhs) { \
-    for (int i = 0; i < N; ++i) {                                       \
+    for (int i = 0; i < Size; ++i) {                                    \
       if (lhs.data[i] op rhs.data[i]) continue;                         \
       return false;                                                     \
     }                                                                   \
@@ -250,7 +286,7 @@ struct Point {
   POINT_CMP(>=)
 
   constexpr friend bool operator!=(const Point lhs, const Point rhs) {
-    for (int i = 0; i < N; ++i) {
+    for (int i = 0; i < Size; ++i) {
       if (lhs.data[i] != rhs.data[i]) return true;
     }
     return false;
@@ -258,7 +294,7 @@ struct Point {
 
   friend std::ostream& operator<<(std::ostream& os, const Point p) {
     os << "{";
-    for (int i = 0; i < N; ++i) {
+    for (int i = 0; i < Size; ++i) {
       if (i) os << ", ";
       os << p.data[i];
     }
@@ -271,11 +307,11 @@ struct Point {
 namespace std {
 
 // Hasher for aoc::Point so it can be used in std::unordered_set.
-template <int N, typename T>
-struct std::hash<aoc::Point<N, T>> {
-  std::size_t operator()(const aoc::Point<N, T>& p) const noexcept {
+template <int Size, typename T>
+struct std::hash<aoc::Point<Size, T>> {
+  std::size_t operator()(const aoc::Point<Size, T>& p) const noexcept {
     std::size_t h = 0;
-    for (int i = 0; i < N; ++i) h ^= (std::hash<int>()(p.data[i]) << i);
+    for (int i = 0; i < Size; ++i) h ^= (std::hash<int>()(p.data[i]) << i);
     return h;
   }
 };

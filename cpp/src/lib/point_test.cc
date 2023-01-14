@@ -1,5 +1,6 @@
 #include "point.h"
 
+#include "math.h"
 #include "testing.h"
 
 namespace aoc {
@@ -57,7 +58,7 @@ TEST(AoC, Point) {
   EXPECT_EQ(p = p.ccw(), Point(4, -2));
   EXPECT_EQ(p = p.ccw(), Point(2, 4));
 
-  // Up, down, left, right.
+  // Orthogonal
   p = {1, 1};
   auto [l, r, d, u] = p.orth();
   EXPECT_EQ(u, Point(1, 2));
@@ -65,6 +66,14 @@ TEST(AoC, Point) {
   EXPECT_EQ(l, Point(0, 1));
   EXPECT_EQ(r, Point(2, 1));
   EXPECT_EQ(p, p.up().right().down().left());
+
+  auto a = aoc::Point<2, int>().adj();
+  std::cout << "Adj[" << a.size() << "]: ";
+  for (auto q : a) {
+    std::cout << q << ", ";
+  }
+  std::cout << "\n";
+  EXPECT_EQ(a.size(), pow<int>(2, a[0].size()) - 1);
 
   // Negation.
   EXPECT_EQ(-Point(-1, 2), Point(1, -2));
