@@ -4,7 +4,7 @@
 
 namespace aoc {
 
-TEST(Aoc, Set) {
+TEST(AoC, Set) {
   using Set = aoc::Set<int>;
 
   // Comparison
@@ -97,26 +97,6 @@ TEST(AoC, Heap) {
   EXPECT_FALSE(minheap);
   minheap.push(data.begin(), data.end());
   EXPECT_EQ(minheap.pop(), 0);
-}
-
-TEST(Aoc, UniqueStack) {
-  auto stack = aoc::UniqueStack<int>();
-  for (int n = 8; n > 0; --n) {
-    for (int i = 0; i < 3; ++i) stack.push(n);
-    for (int i = n; i <= 8; ++i) stack.push(i);
-    EXPECT_EQ(stack.peek(), n);
-    EXPECT_EQ(stack.size(), 8 - n + 1);
-  }
-  EXPECT_EQ(stack.max_size(), 8);
-  EXPECT_EQ(stack.stacked(), 8);
-  for (int n = 1; n <= 8; ++n) {
-    EXPECT_EQ(stack.pop(), n);
-  }
-  EXPECT_FALSE(stack);
-  stack.clear();
-  stack.push(1);
-  EXPECT_TRUE(stack);
-  EXPECT_EQ(stack.pop(), 1);
 }
 
 }  // namespace aoc

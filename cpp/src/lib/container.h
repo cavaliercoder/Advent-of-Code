@@ -9,10 +9,12 @@
 namespace aoc {
 
 // Set extends std::unordered_set to support set arithmatic.
-template <class T, class Compare = std::less<T>, class Hash = std::hash<T>>
+template <class T, class Hash = std::hash<T>, class Compare = std::less<T>>
 class Set : public std::unordered_set<T, Hash> {
  public:
   using std::unordered_set<T, Hash>::unordered_set;
+
+  Set(T elem) : Set({elem}) {}
 
   bool contains(const T& elem) { return this->count(elem); }
   bool contains(const Set& s) { return s <= *this; }
@@ -173,7 +175,7 @@ class Set : public std::unordered_set<T, Hash> {
 };
 
 // Stack is a convenient alterative to std::stack.
-template <typename T>
+template <class T>
 class Stack {
   std::size_t max_size_;
   std::size_t stacked_;
@@ -186,6 +188,8 @@ class Stack {
   Stack(T init) : Stack({init}) {}
 
   Stack(std::initializer_list<T> init) {
+    max_size_ = init.size();
+    stacked_ = init.size();
     data_ = std::vector<T>(init);
     data_.reserve(1024);
   }
@@ -217,34 +221,11 @@ class Stack {
   operator bool() const { return !data_.empty(); }
 };
 
-// UniqueStack is a Stack that ignores items it has already seen.
-//
-// Useful for depth-first search, etc.
-template <typename T>
-class UniqueStack : public Stack<T> {
-  std::unordered_set<T> seen_;
-
- public:
-  using Stack<T>::Stack;
-
-  void push(const T x) override {
-    if (seen_.count(x)) return;
-    seen_.insert(x);
-    Stack<T>::push(x);
-  }
-
-  // Removes all elements from the stack, and the set of observed items.
-  void clear() noexcept override {
-    Stack<T>::clear();
-    seen_.clear();
-  }
-};
-
 // Min/max heap.
 //
 // Convenience wrapper for std::*_heap functions.
 // Defaults to max-heap. Use Compare=std::greater<T> for a min-heap.
-template <typename T, class Compare = std::less<T>>
+template <class T, class Compare = std::less<T>>
 class Heap {
   std::vector<T> data_;
   Compare cmp_;
@@ -257,7 +238,7 @@ class Heap {
 
   Heap(T init, Compare cmp = Compare()) : Heap({init}, cmp) {}
 
-  void push(const T x) {
+  virtual void push(const T x) {
     data_.push_back(x);
     std::push_heap(data_.begin(), data_.end(), cmp_);
   }

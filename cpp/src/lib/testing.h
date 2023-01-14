@@ -85,7 +85,8 @@ class TestCase {
   virtual int line() const = 0;
 
   // Runs the test and converts any exceptions to TestErrors.
-  virtual void run() = 0;
+  virtual void run(const bool capture_stdout = true,
+                   const bool capture_stderr = true) = 0;
 
   // // Runs the user-defined implementation of the test body.
   // virtual void run() = 0;
@@ -144,49 +145,49 @@ class TestRunner {
 #define TEST_CLASS_NAME(suite_name, test_name) TestCase_##suite_name##test_name
 
 // Generates a TestCase and registers it with the test runner.
-#define TEST(suite_name, test_name)                                          \
-  class TEST_CLASS_NAME(suite_name, test_name) : public aoc::TestCase {      \
-    static const int id_;                                                    \
-                                                                             \
-    class Factory : public aoc::TestFactory {                                \
-      TEST_CLASS_NAME(suite_name, test_name) * make() const override {       \
-        return new TEST_CLASS_NAME(suite_name, test_name)();                 \
-      }                                                                      \
-    };                                                                       \
-                                                                             \
-    std::string name() const override { return #test_name; }                 \
-    std::string suite() const override { return #suite_name; }               \
-    std::string file() const override { return __FILE__; }                   \
-    int line() const override { return __LINE__; }                           \
-                                                                             \
-    static void signal_handler(const int sig) {                              \
-      auto msg = std::string("Caught signal: ") + strsignal(sig);            \
-      throw aoc::TestError(msg, __FILE__, __LINE__);                         \
-    }                                                                        \
-                                                                             \
-    void test_body();                                                        \
-                                                                             \
-    void run() override {                                                    \
-      auto cout = std::cout.rdbuf();                                         \
-      auto cerr = std::cerr.rdbuf();                                         \
-      std::cout.rdbuf(cout_.rdbuf());                                        \
-      std::cerr.rdbuf(cout_.rdbuf());                                        \
-      static int signals[] = {SIGABRT, SIGFPE, SIGSEGV};                     \
-      for (int i = 0; i < 3; ++i)                                            \
-        std::signal(signals[i],                                              \
-                    TEST_CLASS_NAME(suite_name, test_name)::signal_handler); \
-      sw_.start();                                                           \
-      WRAP_(test_body());                                                    \
-      sw_.stop();                                                            \
-      for (int i = 0; i < 3; ++i) std::signal(signals[i], SIG_DFL);          \
-      std::cout.rdbuf(cout);                                                 \
-      std::cerr.rdbuf(cerr);                                                 \
-    }                                                                        \
-  };                                                                         \
-                                                                             \
-  const int TEST_CLASS_NAME(suite_name, test_name)::id_ =                    \
-      aoc::TestRunner::register_ctor(new Factory());                         \
-                                                                             \
+#define TEST(suite_name, test_name)                                           \
+  class TEST_CLASS_NAME(suite_name, test_name) : public aoc::TestCase {       \
+    static const int id_;                                                     \
+                                                                              \
+    class Factory : public aoc::TestFactory {                                 \
+      TEST_CLASS_NAME(suite_name, test_name) * make() const override {        \
+        return new TEST_CLASS_NAME(suite_name, test_name)();                  \
+      }                                                                       \
+    };                                                                        \
+                                                                              \
+    std::string name() const override { return #test_name; }                  \
+    std::string suite() const override { return #suite_name; }                \
+    std::string file() const override { return __FILE__; }                    \
+    int line() const override { return __LINE__; }                            \
+                                                                              \
+    static void signal_handler(const int sig) {                               \
+      auto msg = std::string("Caught signal: ") + strsignal(sig);             \
+      throw aoc::TestError(msg, __FILE__, __LINE__);                          \
+    }                                                                         \
+                                                                              \
+    void test_body();                                                         \
+                                                                              \
+    void run(const bool capture_stdout, const bool capture_stderr) override { \
+      auto cout = std::cout.rdbuf();                                          \
+      auto cerr = std::cerr.rdbuf();                                          \
+      if (capture_stdout) std::cout.rdbuf(cout_.rdbuf());                     \
+      if (capture_stderr) std::cerr.rdbuf(cout_.rdbuf());                     \
+      static int signals[] = {SIGABRT, SIGFPE, SIGSEGV};                      \
+      for (int i = 0; i < 3; ++i)                                             \
+        std::signal(signals[i],                                               \
+                    TEST_CLASS_NAME(suite_name, test_name)::signal_handler);  \
+      sw_.start();                                                            \
+      WRAP_(test_body());                                                     \
+      sw_.stop();                                                             \
+      for (int i = 0; i < 3; ++i) std::signal(signals[i], SIG_DFL);           \
+      if (capture_stdout) std::cout.rdbuf(cout);                              \
+      if (capture_stderr) std::cerr.rdbuf(cerr);                              \
+    }                                                                         \
+  };                                                                          \
+                                                                              \
+  const int TEST_CLASS_NAME(suite_name, test_name)::id_ =                     \
+      aoc::TestRunner::register_ctor(new Factory());                          \
+                                                                              \
   void TEST_CLASS_NAME(suite_name, test_name)::test_body()
 
 #define EXPECT(expr, op, expect)                                             \

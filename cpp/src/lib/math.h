@@ -15,6 +15,22 @@ constexpr T pow(const T base, const T exp) {
     return base * n * n;
 }
 
+// Returns the string length of a number formatted in base-10.
+template <typename T>
+constexpr size_t ilen(T n) {
+  if (!n) return 1;
+  size_t s = 0;
+  if (n < 0) {
+    ++s;
+    n = -n;
+  }
+  while (n) {
+    n /= 10;
+    ++s;
+  }
+  return s;
+}
+
 }  // namespace aoc
 
 #endif  // AOC_MATH_H

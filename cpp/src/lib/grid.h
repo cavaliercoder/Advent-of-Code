@@ -4,21 +4,26 @@
 #include <sstream>
 #include <vector>
 
+#include "math.h"
 #include "point.h"
 
 namespace aoc {
+
+template <class T>
+struct GridPrinter;
 
 // Grid is a container of elements arranged in a finite 2-dimensional space.
 //
 // Members may be accessed by index or x/y position. The y-axis increases as the
 // index increases. I.e. the y-axis increases in a downward direction.
-template <typename T = char>
+template <class T = char, class Printer = GridPrinter<T>>
 class Grid {
   using Point = Point<2, int>;
 
   std::vector<T> data_;
   int width_ = 0;
   int height_ = 0;
+  Printer printer_;
 
   // Converts a point to an index.
   inline int ptoi(const Point p) const {
@@ -33,15 +38,16 @@ class Grid {
   }
 
  public:
-  Grid() = default;
+  Grid(Printer printer = Printer()) : printer_(printer) {}
 
-  Grid(const int width, const int height, std::vector<T> data)
-      : width_(width), height_(height), data_(data) {
+  Grid(const int width, const int height, std::vector<T> data,
+       Printer printer = Printer())
+      : width_(width), height_(height), data_(data), printer_(printer) {
     assert(data_.size() == width * height);
   }
 
-  Grid(const int width, const int height, T value)
-      : Grid(width, height, std::vector(width * height, value)) {}
+  Grid(const int width, const int height, T value, Printer printer = Printer())
+      : Grid(width, height, std::vector(width * height, value), printer) {}
 
   inline int size() const { return data_.size(); }
   inline int width() const { return width_; }
@@ -76,11 +82,7 @@ class Grid {
   inline T& operator[](const Point p) { return data_[ptoi(p)]; }
 
   friend std::ostream& operator<<(std::ostream& os, const Grid& g) {
-    for (int i = 0; i < g.size(); ++i) {
-      os << g[i];
-      if (i > 0 && i % g.width() == g.width() - 1) os << "\n";
-    }
-    return os;
+    return g.printer_(os, g);
   }
 
   class Iterator {
@@ -212,6 +214,50 @@ class Grid {
   inline T operator[](const Iterator& it) const { return data_[it.index()]; }
   inline T& operator[](const Iterator& it) { return data_[it.index()]; }
 };
+
+// Prints a grid to an output stream.
+template <class T>
+struct GridPrinter {
+  std::ostream& operator()(std::ostream& os, const Grid<T>& grid) const;
+};
+
+// Prints a grid of characters directly to an output stream.
+template <>
+struct GridPrinter<char> {
+  std::ostream& operator()(std::ostream& os, const Grid<char>& g) const {
+    for (int i = 0; i < g.size(); ++i) {
+      os << g[i];
+      if (i > 0 && i % g.width() == g.width() - 1) os << "\n";
+    }
+    return os;
+  }
+};
+
+// Derive from this template to print a grid of numbers of type N.
+template <class N>
+struct NumericGridPrinter {
+  std::ostream& operator()(std::ostream& os, const Grid<N>& g) const {
+    size_t col_width = 1;
+    for (auto n : g) {
+      col_width = std::max(col_width, ilen(n));
+    }
+    for (auto it = g.begin(); it < g.end(); ++it) {
+      Point p = it.point();
+      if (p.x()) {
+        os << " ";
+      } else if (p.y()) {
+        os << "\n";
+      }
+      os << std::string(col_width - ilen(*it), ' ');
+      os << *it;
+    }
+    os << "\n";
+    return os;
+  }
+};
+
+template <>
+struct GridPrinter<int> : NumericGridPrinter<int> {};
 
 }  // namespace aoc
 
