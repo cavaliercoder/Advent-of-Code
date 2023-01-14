@@ -1,6 +1,11 @@
 __pycache__/
 .mypy_cache/
+.vscode/
+*.o
+*.out
 *.pyc
-pkg/
 bin/
+pkg/
 target/
+
+cpp/src/2022/aoc2022
