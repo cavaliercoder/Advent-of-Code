@@ -21,17 +21,6 @@ class TestError : std::exception {
   TestError(const std::string msg, const std::string file = "",
             const int line = 0);
 
-  template <typename T>
-  TestError(const std::string expr, const std::string op,
-            const std::string expect, const T& actual, const std::string file,
-            const int line)
-      : file_(file), line_(line) {
-    std::stringstream ss;
-    ss << "Expression evaluates to false: (" << expr << " " << op << " "
-       << expect << ")\n    (" << expr << ") → " << actual;
-    msg_ = ss.str();
-  }
-
   const std::string msg() const;
   const std::string file() const;
   int line() const;
@@ -190,20 +179,37 @@ class TestRunner {
                                                                               \
   void TEST_CLASS_NAME(suite_name, test_name)::test_body()
 
-#define EXPECT(expr, op, expect)                                             \
-  {                                                                          \
-    WRAP_(auto actual = expr; if (!(actual op expect)) throw aoc::TestError( \
-              #expr, #op, #expect, actual, __FILE__, __LINE__));             \
+#define EXPECT_TRUE(expr)                                                     \
+  {                                                                           \
+    WRAP_(if (!(expr)) {                                                      \
+      throw aoc::TestError("Expression evaluates to false: " #expr, __FILE__, \
+                           __LINE__);                                         \
+    })                                                                        \
   }
 
-#define EXPECT_TRUE(expr) EXPECT(expr, ==, 1)
-#define EXPECT_FALSE(expr) EXPECT(expr, ==, 0)
-#define EXPECT_EQ(a, b) EXPECT(a, ==, b)
-#define EXPECT_NE(a, b) EXPECT(a, !=, b)
-#define EXPECT_LT(a, b) EXPECT(a, <, b)
-#define EXPECT_GT(a, b) EXPECT(a, >, b)
-#define EXPECT_LE(a, b) EXPECT(a, <=, b)
-#define EXPECT_GE(a, b) EXPECT(a, >=, b)
+#define EXPECT_FALSE(expr)                                                   \
+  {                                                                          \
+    WRAP_(if (expr) {                                                        \
+      throw aoc::TestError("Expression evaluates to true: " #expr, __FILE__, \
+                           __LINE__);                                        \
+    })                                                                       \
+  }
+
+#define EXPECT_OP(lhs, op, rhs)                                               \
+  {                                                                           \
+    WRAP_(auto lhsv = lhs; auto rhsv = rhs; if (!(lhsv op rhsv)) {            \
+      std::stringstream ss;                                                   \
+      ss << "Expression evaluates to false: " << lhsv << " " #op " " << rhsv; \
+      throw aoc::TestError(ss.str(), __FILE__, __LINE__);                     \
+    })                                                                        \
+  }
+
+#define EXPECT_EQ(a, b) EXPECT_OP(a, ==, b)
+#define EXPECT_NE(a, b) EXPECT_OP(a, !=, b)
+#define EXPECT_LT(a, b) EXPECT_OP(a, <, b)
+#define EXPECT_GT(a, b) EXPECT_OP(a, >, b)
+#define EXPECT_LE(a, b) EXPECT_OP(a, <=, b)
+#define EXPECT_GE(a, b) EXPECT_OP(a, >=, b)
 
 // TODO: assert
 
