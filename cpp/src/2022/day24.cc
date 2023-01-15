@@ -110,7 +110,7 @@ class Day24 {
           if (p == dst) best = t;
         }
         if (p == dst) continue;
-        State next = {p, t, t + p.manhattan(dst)};
+        State next = {p, t, (t * grid.size()) + p.manhattan(dst)};
         if (seen.contains(next)) continue;
         seen.insert(next);
         heap.push(next);
