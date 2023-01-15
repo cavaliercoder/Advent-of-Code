@@ -61,7 +61,7 @@ struct Range {
 
   inline friend bool operator<(const Range& lhs, const Range& rhs) {
     if (lhs.start == rhs.start) return lhs.limit < rhs.limit;
-    return lhs.start < rhs.limit;
+    return lhs.start < rhs.start;
   }
 
   inline friend bool operator<=(const Range& lhs, const Range& rhs) {

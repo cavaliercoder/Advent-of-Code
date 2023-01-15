@@ -7,7 +7,7 @@ void Input::set_err() { err_ = true; }
 Input::Input(const int year, const int day, const std::string& suffix)
     : year_(year), day_(day) {
   std::ostringstream ss;
-  // TODO: Recurse up until ./inputs is found
+  // TODO: Recurse up until ./inputs is found?
   ss << "../../../inputs/" << year << "/day";
   if (day < 10) {
     ss << "0" << day;

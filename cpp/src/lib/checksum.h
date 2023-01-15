@@ -77,7 +77,7 @@ class CRC32 {
   }
 };
 
-#define DEFINE_DIGEST(digest_name, digest_size)                      \
+#define DIGEST_DECL(digest_name, digest_size)                        \
   class digest_name {                                                \
     DIGEST_CTX(digest_name) ctx_;                                    \
                                                                      \
@@ -112,8 +112,8 @@ class CRC32 {
     Digest operator()() const;                                       \
   };
 
-DEFINE_DIGEST(SHA1, 20);
-DEFINE_DIGEST(SHA256, 32);
+DIGEST_DECL(SHA1, 20);
+DIGEST_DECL(SHA256, 32);
 
 }  // namespace aoc
 

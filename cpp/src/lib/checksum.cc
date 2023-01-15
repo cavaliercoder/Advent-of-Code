@@ -2,7 +2,7 @@
 
 namespace aoc {
 
-#define IMPLEMENT_DIGEST(digest_name, digest_size)                             \
+#define DIGEST_DEF(digest_name, digest_size)                                   \
   int digest_name::Digest::size() const { return digest_size; }                \
                                                                                \
   std::string digest_name::Digest::str() const {                               \
@@ -67,7 +67,7 @@ namespace aoc {
                                                                                \
   digest_name::Digest digest_name::operator()() const { return sum(); }
 
-IMPLEMENT_DIGEST(SHA1, 20);
-IMPLEMENT_DIGEST(SHA256, 32);
+DIGEST_DEF(SHA1, 20);
+DIGEST_DEF(SHA256, 32);
 
 }  // namespace aoc

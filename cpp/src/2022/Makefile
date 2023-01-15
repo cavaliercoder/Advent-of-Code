@@ -1,7 +1,7 @@
 UNAME := $(shell uname -s)
 
 CXX = clang++
-CXX_FLAGS = --std=c++17 -O3 -I../
+CXX_FLAGS += --std=c++17 -O3 -I../
 
 ifneq ($(UNAME), Darwin)
 	LD_FLAGS += -lcrypto
