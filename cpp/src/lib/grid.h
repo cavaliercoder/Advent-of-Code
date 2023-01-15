@@ -20,7 +20,7 @@ template <class T = char, class Printer = GridPrinter<T>>
 class Grid {
   using Point = Point<2, int>;
 
-  std::vector<T> data_;
+  std::vector<T> data_ = {};
   int width_ = 0;
   int height_ = 0;
   Printer printer_;
@@ -49,9 +49,10 @@ class Grid {
   Grid(const int width, const int height, T value, Printer printer = Printer())
       : Grid(width, height, std::vector(width * height, value), printer) {}
 
-  inline int size() const { return data_.size(); }
-  inline int width() const { return width_; }
-  inline int height() const { return height_; }
+  constexpr int size() const { return data_.size(); }
+  constexpr bool empty() const { return data_.empty(); }
+  constexpr int width() const { return width_; }
+  constexpr int height() const { return height_; }
 
   inline bool contains(const int i) const { return i >= 0 && i < size(); }
 

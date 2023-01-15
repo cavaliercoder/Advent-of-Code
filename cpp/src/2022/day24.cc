@@ -6,6 +6,7 @@
 namespace aoc2022 {
 
 class Day24 {
+  using Grid = aoc::Grid<char>;
   using Point = aoc::Point<2, int>;
 
   struct Blizzard {
@@ -52,8 +53,8 @@ class Day24 {
   Point E;
   Point bounds;
   aoc::Grid<char> grid;
-  std::vector<std::vector<Blizzard>> blizzards_at_x;
-  std::vector<std::vector<Blizzard>> blizzards_at_y;
+  std::vector<aoc::Grid<char>> grid_cache = {};
+  std::vector<Blizzard> blizzards;
 
   const Point move[5] = {{0, 0}, {-1, 0}, {0, -1}, {0, 1}, {1, 0}};
 
@@ -66,12 +67,20 @@ class Day24 {
   }
 
   // Returns true if point p collides with a blizzard at time t.
-  bool collides(const Point p, const int t) const {
-    for (auto& b : blizzards_at_x[p.x()])
-      if (p == ff(b, t)) return true;
-    for (auto& b : blizzards_at_y[p.y()])
-      if (p == ff(b, t)) return true;
-    return false;
+  bool collides(const Point p, const int t) {
+    // Caching grid states trades memory for a ~50% speed increase.
+    //
+    // There should only be W*H possible states but we find our destination
+    // within W+H so there seems to be no point applying t%(W*H).
+    if (t >= grid_cache.size()) {
+      grid_cache.resize(std::max<size_t>(t * 2, 64), Grid());
+    }
+    auto& g = grid_cache[t - 1];
+    if (g.empty()) {
+      g = Grid(grid);
+      for (auto& b : blizzards) g[ff(b, t)] = 'B';
+    }
+    return g[p] != '.';
   }
 
  public:
@@ -80,17 +89,15 @@ class Day24 {
     bounds = Point(grid.width(), grid.height());
     S = {1, 0};
     E = {bounds.x() - 2, bounds.y() - 1};
-    blizzards_at_x.resize(bounds.x());
-    blizzards_at_y.resize(bounds.y());
     for (auto it = grid.begin(); it < grid.end(); ++it) {
       if (*it == '#' || *it == '.') continue;
       auto b = Blizzard(it.point(), *it);
-      if (!b.vec.x()) blizzards_at_x[b.init.x()].push_back(b);
-      if (!b.vec.y()) blizzards_at_y[b.init.y()].push_back(b);
+      blizzards.push_back(b);
+      grid[it] = '.';
     }
   }
 
-  int search(const Point src, const Point dst, const int T = 0) const {
+  int search(const Point src, const Point dst, const int T = 0) {
     auto dist = aoc::Grid<int>(bounds.x(), bounds.y(), INT_MAX);
     dist[src] = T;
 
@@ -120,9 +127,9 @@ class Day24 {
     return dist[dst];
   }
 
-  int Part1() const { return search(S, E); }
+  int Part1() { return search(S, E); }
 
-  int Part2() const {
+  int Part2() {
     auto t = search(S, E);
     t = search(E, S, t);
     t = search(S, E, t);

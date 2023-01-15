@@ -6,7 +6,7 @@ Vagrant.configure("2") do |config|
   config.vm.provision "shell", inline: <<-SHELL
     apt-get update
     apt-get upgrade
-    apt-get install -y clang libssl-dev
+    apt-get install -y clang libssl-dev linux-tools-4.15.0-58-generic
   SHELL
 
   config.vm.provider "vmware_desktop" do |v|
