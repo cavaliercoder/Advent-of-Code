@@ -1,5 +1,6 @@
 __pycache__/
 .mypy_cache/
+.vagrant/
 .vscode/
 *.o
 *.out

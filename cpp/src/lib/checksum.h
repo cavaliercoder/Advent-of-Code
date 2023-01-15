@@ -31,7 +31,7 @@ typedef SHA_CTX SHA1_CTX;
 namespace aoc {
 
 // Computes CRC32 checksums.
-template <typename T = uint_fast32_t, T Polynomial = 0xEDB88320>
+template <typename T = uint32_t, T Polynomial = 0xEDB88320>
 class CRC32 {
   T crc_ = 0;
 
