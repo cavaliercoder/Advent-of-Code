@@ -96,7 +96,7 @@ class Day21 {
   }
 
   int64_t Part2(aoc::Input in) {
-    int64_t answer;
+    int64_t answer = 0;
     auto monkeys = parse(in);
     monkeys["root"].eval(monkeys);
 
