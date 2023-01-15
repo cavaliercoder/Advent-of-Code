@@ -2,6 +2,7 @@
 #define AOC_INPUT_H
 
 #include <fstream>
+#include <iterator>
 #include <sstream>
 #include <string>
 

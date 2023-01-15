@@ -60,9 +60,9 @@ class Day25 {
   };
 
   std::string Part1(aoc::Input in) {
-    Snafu sum;
+    Snafu<> sum = 0;
     for (auto s : in) {
-      sum += Snafu(s.begin(), s.end());
+      sum += Snafu<>(s.begin(), s.end());
     }
     return sum.str();
   }

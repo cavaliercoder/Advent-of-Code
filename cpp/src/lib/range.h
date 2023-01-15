@@ -1,7 +1,9 @@
 #ifndef AOC_RANGE_H
 #define AOC_RANGE_H
 
+#include <algorithm>
 #include <iostream>
+#include <vector>
 
 namespace aoc {
 

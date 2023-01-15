@@ -2,10 +2,28 @@
 #define AOC_CHECKSUM_H
 
 #include <array>
-#include <string>
+#include <cstring>
 
 #ifdef __APPLE__
+
 #include <CommonCrypto/CommonDigest.h>
+
+#define DIGEST_CTX(digest_name) CC_##digest_name##_CTX
+#define DIGEST_INIT(digest_name) CC_##digest_name##_Init
+#define DIGEST_UPDATE(digest_name) CC_##digest_name##_Update
+#define DIGEST_FINAL(digest_name) CC_##digest_name##_Final
+
+#else
+
+#include <openssl/sha.h>
+
+typedef SHA_CTX SHA1_CTX;
+
+#define DIGEST_CTX(digest_name) digest_name##_CTX
+#define DIGEST_INIT(digest_name) digest_name##_Init
+#define DIGEST_UPDATE(digest_name) digest_name##_Update
+#define DIGEST_FINAL(digest_name) digest_name##_Final
+
 #endif
 
 #include "hex.h"
@@ -59,9 +77,9 @@ class CRC32 {
   }
 };
 
-#define DEFINE_DIGEST(class_name, digest_size)                       \
-  class class_name {                                                 \
-    CC_##class_name##_CTX ctx_;                                      \
+#define DEFINE_DIGEST(digest_name, digest_size)                      \
+  class digest_name {                                                \
+    DIGEST_CTX(digest_name) ctx_;                                    \
                                                                      \
    public:                                                           \
     class Digest {                                                   \
@@ -76,13 +94,13 @@ class CRC32 {
       friend bool operator!=(const Digest& lhs, const Digest& rhs);  \
       friend std::ostream& operator<<(std::ostream&, const Digest&); \
                                                                      \
-      friend class class_name;                                       \
+      friend class digest_name;                                      \
     };                                                               \
                                                                      \
-    class_name();                                                    \
-    class_name(const void* data, size_t len);                        \
-    class_name(const char* str);                                     \
-    class_name(const std::string& str);                              \
+    digest_name();                                                   \
+    digest_name(const void* data, size_t len);                       \
+    digest_name(const char* str);                                    \
+    digest_name(const std::string& str);                             \
                                                                      \
     void update(const void* data, size_t len);                       \
     void update(const char* str);                                    \

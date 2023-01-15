@@ -2,6 +2,8 @@
 #define AOC_POINT_H
 
 #include <array>
+#include <cassert>
+#include <functional>
 #include <iostream>
 
 namespace aoc {

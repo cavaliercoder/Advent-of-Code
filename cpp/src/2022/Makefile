@@ -1,6 +1,11 @@
-CXX = clang++
-CXX_FLAGS = --std=c++17 -g -O3 -I../
+UNAME := $(shell uname -s)
 
+CXX = clang++
+CXX_FLAGS = --std=c++17 -O3 -I../
+
+ifneq ($(UNAME), Darwin)
+	LD_FLAGS += -lcrypto
+endif
 
 LIBAOC_HDRS = $(wildcard ../lib/*.h)
 LIBAOC_SRCS = $(wildcard ../lib/*.cc)
@@ -33,7 +38,7 @@ testing.o: ../lib/testing.cc
 #
 
 $(BIN): $(BIN_SRCS)
-	$(CXX) $(CXX_FLAGS) -o $@ $(BIN_DEPS)
+	$(CXX) $(LD_FLAGS) -o $@ $(BIN_DEPS)
 
 check: $(BIN)
 	./$(BIN)
