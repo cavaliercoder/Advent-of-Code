@@ -35,7 +35,7 @@ class Day09 {
 
   Point move_tail(const Point head, const Point tail) {
     Point delta = (tail - head).abs();
-    if (delta <= Point(1, 1)) return Point();
+    if (delta.x() <= 1 && delta.y() <= 1) return Point();
     assert(delta <= Point(2, 2));
 
     // Simple horizontal/vertical move

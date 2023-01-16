@@ -1,5 +1,7 @@
 #include "point.h"
 
+#include <algorithm>
+
 #include "testing.h"
 
 namespace aoc {
@@ -32,8 +34,23 @@ TEST(AoC, Point) {
 
   // Comparison.
   EXPECT_EQ(Point(1, 2), Point(1, 2));
+  EXPECT_EQ(Point(68, 70), Point(68, 70));
   EXPECT_NE(Point(1, 2), Point(3, 4));
   EXPECT_NE(Point(50, 0), Point(50, -22));
+
+  // Sorting
+  std::vector<Point> a = {{3, 4}, {-10, 500}, {1, -5}, {1, -6}};
+  std::vector<Point> b = {{-10, 500}, {1, -6}, {1, -5}, {3, 4}};
+  std::sort(a.begin(), a.end());
+  for (int i = 0; i < a.size(); ++i) {
+    EXPECT_EQ(a[i], b[i]);
+    EXPECT_LE(a[i], b[i]);
+    EXPECT_GE(a[i], b[i]);
+  }
+  EXPECT_LT(Point(3, 4), Point(3, 5));
+  EXPECT_LT(Point(2, 4), Point(3, 5));
+  EXPECT_LE(Point(3, 4), Point(3, 5));
+  EXPECT_LE(Point(2, 4), Point(3, 5));
 
   // Addition.
   p = Point(1, 1);

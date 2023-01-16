@@ -55,8 +55,12 @@ class TestCase {
  protected:
   Stopwatch sw_ = {};
   std::vector<TestError> errv_;
-
   std::stringstream cout_;
+
+  void signal(void (*f)(int) = SIG_DFL) const {
+    static int signals[] = {SIGABRT, SIGFPE, SIGSEGV};
+    for (int i = 0; i < 3; ++i) std::signal(signals[i], f);
+  }
 
  public:
   virtual ~TestCase() = default;
@@ -161,14 +165,11 @@ class TestRunner {
       auto cerr = std::cerr.rdbuf();                                          \
       if (capture_stdout) std::cout.rdbuf(cout_.rdbuf());                     \
       if (capture_stderr) std::cerr.rdbuf(cout_.rdbuf());                     \
-      static int signals[] = {SIGABRT, SIGFPE, SIGSEGV};                      \
-      for (int i = 0; i < 3; ++i)                                             \
-        std::signal(signals[i],                                               \
-                    TEST_CLASS_NAME(suite_name, test_name)::signal_handler);  \
+      signal(signal_handler);                                                 \
       sw_.start();                                                            \
       WRAP_(test_body());                                                     \
       sw_.stop();                                                             \
-      for (int i = 0; i < 3; ++i) std::signal(signals[i], SIG_DFL);           \
+      signal();                                                               \
       if (capture_stdout) std::cout.rdbuf(cout);                              \
       if (capture_stderr) std::cerr.rdbuf(cerr);                              \
     }                                                                         \

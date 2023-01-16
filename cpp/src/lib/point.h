@@ -6,12 +6,22 @@
 #include <functional>
 #include <iostream>
 
+#include "checksum.h"
+
 namespace aoc {
 
 // Point represents an N-dimensional coordinate with components of type T.
 template <size_t Size = 2, typename T = int>
 struct Point {
   T data[Size] = {};
+
+  // FNV Hash runs faster in most cases and with a better collision rate than
+  // std::hash.
+  struct FNV32 {
+    std::size_t operator()(const aoc::Point<Size, T>& p) const noexcept {
+      return aoc::FNV32(&p.data[0], sizeof(T) * Size);
+    }
+  };
 
   // Returns a point at {0, ...}.
   constexpr Point() = default;
@@ -230,6 +240,20 @@ struct Point {
   constexpr T& operator[](const int i) { return data[i]; }
   constexpr T operator[](const int i) const { return data[i]; }
 
+  constexpr friend bool operator==(const Point lhs, const Point rhs) {
+    for (int i = 0; i < Size; ++i) {
+      if (lhs.data[i] != rhs.data[i]) return false;
+    }
+    return true;
+  }
+
+  constexpr friend bool operator!=(const Point lhs, const Point rhs) {
+    for (int i = 0; i < Size; ++i) {
+      if (lhs.data[i] != rhs.data[i]) return true;
+    }
+    return false;
+  }
+
 #define POINT_ARITHMATIC(op)                                               \
   constexpr friend Point operator op(const Point lhs, const Point rhs) {   \
     Point q = {};                                                          \
@@ -275,24 +299,16 @@ struct Point {
 #define POINT_CMP(op)                                                   \
   constexpr friend bool operator op(const Point lhs, const Point rhs) { \
     for (int i = 0; i < Size; ++i) {                                    \
-      if (lhs.data[i] op rhs.data[i]) continue;                         \
-      return false;                                                     \
+      if (lhs.data[i] op rhs.data[i]) return true;                      \
+      if (rhs.data[i] op lhs.data[i]) return false;                     \
     }                                                                   \
-    return true;                                                        \
+    return false;                                                       \
   }
 
-  POINT_CMP(==)
   POINT_CMP(<)
   POINT_CMP(>)
   POINT_CMP(<=)
   POINT_CMP(>=)
-
-  constexpr friend bool operator!=(const Point lhs, const Point rhs) {
-    for (int i = 0; i < Size; ++i) {
-      if (lhs.data[i] != rhs.data[i]) return true;
-    }
-    return false;
-  }
 
   friend std::ostream& operator<<(std::ostream& os, const Point p) {
     os << "{";
@@ -302,22 +318,29 @@ struct Point {
     }
     return os << "}";
   }
+
+  // Implements getter for structured binding (auto [x, y] = p).
+  template <std::size_t I>
+  std::tuple_element_t<I, Point> get() {
+    return data[I];
+  }
 };
 
 }  // namespace aoc
 
-namespace std {
+template <size_t Size, typename T>
+struct std::hash<aoc::Point<Size, T>> : aoc::Point<Size, T>::FNV32 {};
 
-// Hasher for aoc::Point so it can be used in std::unordered_set.
-template <int Size, typename T>
-struct std::hash<aoc::Point<Size, T>> {
-  std::size_t operator()(const aoc::Point<Size, T>& p) const noexcept {
-    std::size_t h = 0;
-    for (int i = 0; i < Size; ++i) h ^= (std::hash<int>()(p.data[i]) << i);
-    return h;
-  }
+// Implement structured binding to each component of a point:
+
+template <size_t Size, typename T>
+struct std::tuple_size<aoc::Point<Size, T>> {
+  static constexpr size_t value = Size;
 };
 
-}  // namespace std
+template <std::size_t I, size_t Size, typename T>
+struct std::tuple_element<I, aoc::Point<Size, T>> {
+  using type = T;
+};
 
 #endif  // AOC_POINT_H

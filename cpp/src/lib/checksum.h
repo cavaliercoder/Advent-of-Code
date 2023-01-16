@@ -77,6 +77,27 @@ class CRC32 {
   }
 };
 
+template <class T, T Prime>
+constexpr T FNV(const void* buf, size_t size, const T init) {
+  T fnv = init;
+  const uint8_t* p = static_cast<const uint8_t*>(buf);
+  while (size--) {
+    fnv *= Prime;
+    fnv ^= (T)*p++;
+  }
+  return fnv;
+}
+
+constexpr uint32_t FNV32(const void* buf, size_t size,
+                         const uint32_t init = 0x811c9dc5) {
+  return FNV<uint32_t, 0x01000193>(buf, size, init);
+}
+
+constexpr uint32_t FNV64(const void* buf, size_t size,
+                         const uint64_t init = 0xcbf29ce484222325) {
+  return FNV<uint64_t, 0x100000001b3>(buf, size, init);
+}
+
 #define DIGEST_DECL(digest_name, digest_size)                        \
   class digest_name {                                                \
     DIGEST_CTX(digest_name) ctx_;                                    \
