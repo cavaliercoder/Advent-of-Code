@@ -41,7 +41,7 @@ class Day20 {
 
   std::vector<Node> make_nodes(const int64_t key = 1) const {
     auto node =
-        std::vector<Node>(numbers_.size(), Node());  // needs point stability
+        std::vector<Node>(numbers_.size(), Node());  // needs pointer stability
     for (int i = 0; i < numbers_.size(); ++i) {
       node[i].id = i;
       node[i].value = numbers_[i] * key;
@@ -52,8 +52,8 @@ class Day20 {
   }
 
   int64_t mix(const int rounds = 1, const int64_t key = 1) const {
-    int64_t len = numbers_.size() - 1;
     auto node = make_nodes(key);
+    int64_t len = numbers_.size() - 1;
     Node* zero = nullptr;
     for (int r = 0; r < rounds; ++r) {
       for (int64_t id = 0; id < numbers_.size(); ++id) {
